@@ -1,15 +1,15 @@
 <?php
 declare(strict_types=1);
 
-namespace Miklcct\NationalRailTimetable\Parsers;
+namespace Miklcct\RailOpenTimetableData\Parsers;
 
 use LogicException;
-use Miklcct\NationalRailTimetable\Models\Date;
-use Miklcct\NationalRailTimetable\Models\FixedLink;
-use Miklcct\NationalRailTimetable\Models\Station;
-use Miklcct\NationalRailTimetable\Models\Time;
-use Miklcct\NationalRailTimetable\Repositories\FixedLinkRepositoryInterface;
-use Miklcct\NationalRailTimetable\Repositories\LocationRepositoryInterface;
+use Miklcct\RailOpenTimetableData\Models\Date;
+use Miklcct\RailOpenTimetableData\Models\FixedLink;
+use Miklcct\RailOpenTimetableData\Models\Station;
+use Miklcct\RailOpenTimetableData\Models\Time;
+use Miklcct\RailOpenTimetableData\Repositories\FixedLinkRepositoryInterface;
+use Miklcct\RailOpenTimetableData\Repositories\LocationRepositoryInterface;
 use Safe\DateTimeImmutable;
 use function explode;
 use function fgetcsv;

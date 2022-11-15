@@ -1,11 +1,11 @@
 <?php
 declare(strict_types=1);
 
-namespace Miklcct\NationalRailTimetable\Models\Points;
+namespace Miklcct\RailOpenTimetableData\Models\Points;
 
-use Miklcct\NationalRailTimetable\Models\BsonSerializeTrait;
-use Miklcct\NationalRailTimetable\Models\Location;
-use Miklcct\NationalRailTimetable\Models\ServiceProperty;
+use Miklcct\RailOpenTimetableData\Models\BsonSerializeTrait;
+use Miklcct\RailOpenTimetableData\Models\Location;
+use Miklcct\RailOpenTimetableData\Models\ServiceProperty;
 
 abstract class IntermediatePoint extends TimingPoint {
     use BsonSerializeTrait;

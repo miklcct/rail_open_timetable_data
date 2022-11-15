@@ -1,18 +1,18 @@
 <?php
 declare(strict_types=1);
 
-namespace Miklcct\NationalRailTimetable\Models;
+namespace Miklcct\RailOpenTimetableData\Models;
 
-use Miklcct\NationalRailTimetable\Attributes\ElementType;
-use Miklcct\NationalRailTimetable\Enums\BankHoliday;
-use Miklcct\NationalRailTimetable\Enums\Mode;
-use Miklcct\NationalRailTimetable\Enums\ShortTermPlanning;
-use Miklcct\NationalRailTimetable\Models\Points\CallingPoint;
-use Miklcct\NationalRailTimetable\Models\Points\DestinationPoint;
-use Miklcct\NationalRailTimetable\Models\Points\IntermediatePoint;
-use Miklcct\NationalRailTimetable\Models\Points\OriginPoint;
-use Miklcct\NationalRailTimetable\Models\Points\PassingPoint;
-use Miklcct\NationalRailTimetable\Models\Points\TimingPoint;
+use Miklcct\RailOpenTimetableData\Attributes\ElementType;
+use Miklcct\RailOpenTimetableData\Enums\BankHoliday;
+use Miklcct\RailOpenTimetableData\Enums\Mode;
+use Miklcct\RailOpenTimetableData\Enums\ShortTermPlanning;
+use Miklcct\RailOpenTimetableData\Models\Points\CallingPoint;
+use Miklcct\RailOpenTimetableData\Models\Points\DestinationPoint;
+use Miklcct\RailOpenTimetableData\Models\Points\IntermediatePoint;
+use Miklcct\RailOpenTimetableData\Models\Points\OriginPoint;
+use Miklcct\RailOpenTimetableData\Models\Points\PassingPoint;
+use Miklcct\RailOpenTimetableData\Models\Points\TimingPoint;
 use RuntimeException;
 use const PHP_INT_MAX;
 

@@ -1,10 +1,10 @@
 <?php
 declare(strict_types=1);
 
-namespace Miklcct\NationalRailTimetable\Models;
+namespace Miklcct\RailOpenTimetableData\Models;
 
-use Miklcct\NationalRailTimetable\Attributes\ElementType;
-use Miklcct\NationalRailTimetable\Repositories\LocationRepositoryInterface;
+use Miklcct\RailOpenTimetableData\Attributes\ElementType;
+use Miklcct\RailOpenTimetableData\Repositories\LocationRepositoryInterface;
 
 class Station extends Location implements LocationWithCrs {
     use BsonSerializeTrait;

@@ -1,9 +1,9 @@
 <?php
 declare(strict_types=1);
 
-namespace Miklcct\NationalRailTimetable\Models;
+namespace Miklcct\RailOpenTimetableData\Models;
 
-use Miklcct\NationalRailTimetable\Repositories\LocationRepositoryInterface;
+use Miklcct\RailOpenTimetableData\Repositories\LocationRepositoryInterface;
 
 class TiplocLocationWithCrs extends TiplocLocation implements LocationWithCrs {
     use BsonSerializeTrait;

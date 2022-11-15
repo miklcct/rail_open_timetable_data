@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 
-namespace Miklcct\NationalRailTimetable\Models;
+namespace Miklcct\RailOpenTimetableData\Models;
 
 use DateInterval;
 use DateTimeImmutable;

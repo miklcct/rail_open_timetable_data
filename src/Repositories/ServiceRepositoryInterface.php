@@ -1,17 +1,17 @@
 <?php
 declare(strict_types=1);
 
-namespace Miklcct\NationalRailTimetable\Repositories;
+namespace Miklcct\RailOpenTimetableData\Repositories;
 
 use DateTimeImmutable;
-use Miklcct\NationalRailTimetable\Enums\TimeType;
-use Miklcct\NationalRailTimetable\Models\AssociationEntry;
-use Miklcct\NationalRailTimetable\Models\Date;
-use Miklcct\NationalRailTimetable\Models\DatedAssociation;
-use Miklcct\NationalRailTimetable\Models\DatedService;
-use Miklcct\NationalRailTimetable\Models\DepartureBoard;
-use Miklcct\NationalRailTimetable\Models\FullService;
-use Miklcct\NationalRailTimetable\Models\ServiceEntry;
+use Miklcct\RailOpenTimetableData\Enums\TimeType;
+use Miklcct\RailOpenTimetableData\Models\AssociationEntry;
+use Miklcct\RailOpenTimetableData\Models\Date;
+use Miklcct\RailOpenTimetableData\Models\DatedAssociation;
+use Miklcct\RailOpenTimetableData\Models\DatedService;
+use Miklcct\RailOpenTimetableData\Models\DepartureBoard;
+use Miklcct\RailOpenTimetableData\Models\FullService;
+use Miklcct\RailOpenTimetableData\Models\ServiceEntry;
 
 interface ServiceRepositoryInterface {
     /**

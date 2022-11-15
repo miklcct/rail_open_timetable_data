@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/.idea/national_rail_journey_planner.iml" filepath="$PROJECT_DIR$/.idea/national_rail_journey_planner.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/rail_open_timetable_data.iml" filepath="$PROJECT_DIR$/.idea/rail_open_timetable_data.iml" />
     </modules>
   </component>
 </project>

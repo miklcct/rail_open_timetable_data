@@ -1,15 +1,15 @@
 <?php
 declare(strict_types=1);
 
-namespace Miklcct\NationalRailTimetable\Parsers;
+namespace Miklcct\RailOpenTimetableData\Parsers;
 
-use Miklcct\NationalRailTimetable\Models\Station;
-use Miklcct\NationalRailTimetable\Models\TocInterchange;
-use Miklcct\NationalRailTimetable\Repositories\LocationRepositoryInterface;
+use Miklcct\RailOpenTimetableData\Models\Station;
+use Miklcct\RailOpenTimetableData\Models\TocInterchange;
+use Miklcct\RailOpenTimetableData\Repositories\LocationRepositoryInterface;
 use function array_filter;
 use function fgetcsv;
 use function fgets;
-use function Miklcct\NationalRailTimetable\get_full_station_name;
+use function Miklcct\RailOpenTimetableData\get_full_station_name;
 use function str_starts_with;
 
 class StationParser {

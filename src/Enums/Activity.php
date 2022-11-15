@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 
-namespace Miklcct\NationalRailTimetable\Enums;
+namespace Miklcct\RailOpenTimetableData\Enums;
 
 // This list is not complete.
 // Only activities relevant to passenger operations are listed here.

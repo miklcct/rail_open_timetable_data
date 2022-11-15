@@ -1,13 +1,13 @@
 <?php
 declare(strict_types=1);
 
-namespace Miklcct\NationalRailTimetable\Models;
+namespace Miklcct\RailOpenTimetableData\Models;
 
-use Miklcct\NationalRailTimetable\Attributes\ElementType;
-use Miklcct\NationalRailTimetable\Enums\Catering;
-use Miklcct\NationalRailTimetable\Enums\Power;
-use Miklcct\NationalRailTimetable\Enums\Reservation;
-use Miklcct\NationalRailTimetable\Enums\TrainCategory;
+use Miklcct\RailOpenTimetableData\Attributes\ElementType;
+use Miklcct\RailOpenTimetableData\Enums\Catering;
+use Miklcct\RailOpenTimetableData\Enums\Power;
+use Miklcct\RailOpenTimetableData\Enums\Reservation;
+use Miklcct\RailOpenTimetableData\Enums\TrainCategory;
 use MongoDB\BSON\Persistable;
 use function substr;
 
@@ -45,21 +45,6 @@ class ServiceProperty implements Persistable {
             }
         }
         return $result === [] ? null : $result;
-    }
-
-    public function showIcons() : string {
-        $result = '';
-        foreach ($this->caterings as $catering) {
-            $result .= $catering->showIcon();
-        }
-        $result .= $this->reservation->showIcon();
-        if ($this->seatingClasses[1]) {
-            $result .= '<img class="facility" src="/images/first_class.png" alt="first class" title="First class available" />';
-        }
-        if (array_filter($this->sleeperClasses)) {
-            $result .= '<img class="facility" src="/images/sleeper.png" alt="sleeper" title="Sleeper available" />';
-        }
-        return $result;
     }
 
     /** @var Catering[] */

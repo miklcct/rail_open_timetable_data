@@ -1,17 +1,17 @@
 <?php
 declare(strict_types=1);
 
-namespace Miklcct\NationalRailTimetable\Repositories;
+namespace Miklcct\RailOpenTimetableData\Repositories;
 
 use DateTimeImmutable;
-use Miklcct\NationalRailTimetable\Enums\TimeType;
-use Miklcct\NationalRailTimetable\Models\AssociationEntry;
-use Miklcct\NationalRailTimetable\Models\Date;
-use Miklcct\NationalRailTimetable\Models\DatedService;
-use Miklcct\NationalRailTimetable\Models\DepartureBoard;
-use Miklcct\NationalRailTimetable\Models\Service;
-use Miklcct\NationalRailTimetable\Models\ServiceCallWithDestination;
-use Miklcct\NationalRailTimetable\Models\ServiceEntry;
+use Miklcct\RailOpenTimetableData\Enums\TimeType;
+use Miklcct\RailOpenTimetableData\Models\AssociationEntry;
+use Miklcct\RailOpenTimetableData\Models\Date;
+use Miklcct\RailOpenTimetableData\Models\DatedService;
+use Miklcct\RailOpenTimetableData\Models\DepartureBoard;
+use Miklcct\RailOpenTimetableData\Models\Service;
+use Miklcct\RailOpenTimetableData\Models\ServiceCallWithDestination;
+use Miklcct\RailOpenTimetableData\Models\ServiceEntry;
 use function array_filter;
 use function array_keys;
 use function array_values;

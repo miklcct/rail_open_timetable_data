@@ -1,12 +1,12 @@
 <?php
 declare(strict_types=1);
 
-namespace Miklcct\NationalRailTimetable\Models;
+namespace Miklcct\RailOpenTimetableData\Models;
 
 use DateTimeImmutable;
 use LogicException;
-use Miklcct\NationalRailTimetable\Enums\TimeType;
-use Miklcct\NationalRailTimetable\Models\Points\TimingPoint;
+use Miklcct\RailOpenTimetableData\Enums\TimeType;
+use Miklcct\RailOpenTimetableData\Models\Points\TimingPoint;
 use MongoDB\BSON\Persistable;
 
 class DatedService implements Persistable {

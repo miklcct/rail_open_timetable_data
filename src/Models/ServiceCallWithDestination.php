@@ -1,15 +1,15 @@
 <?php
 declare(strict_types=1);
 
-namespace Miklcct\NationalRailTimetable\Models;
+namespace Miklcct\RailOpenTimetableData\Models;
 
 use DateTimeImmutable;
-use Miklcct\NationalRailTimetable\Attributes\ElementType;
-use Miklcct\NationalRailTimetable\Enums\Mode;
-use Miklcct\NationalRailTimetable\Enums\TimeType;
-use Miklcct\NationalRailTimetable\Models\Points\DestinationPoint;
-use Miklcct\NationalRailTimetable\Models\Points\OriginPoint;
-use Miklcct\NationalRailTimetable\Models\Points\TimingPoint;
+use Miklcct\RailOpenTimetableData\Attributes\ElementType;
+use Miklcct\RailOpenTimetableData\Enums\Mode;
+use Miklcct\RailOpenTimetableData\Enums\TimeType;
+use Miklcct\RailOpenTimetableData\Models\Points\DestinationPoint;
+use Miklcct\RailOpenTimetableData\Models\Points\OriginPoint;
+use Miklcct\RailOpenTimetableData\Models\Points\TimingPoint;
 
 // This class can be used to identify which portion(s) of the train will call
 class ServiceCallWithDestination extends ServiceCall {

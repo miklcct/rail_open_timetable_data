@@ -1,9 +1,9 @@
 <?php
 declare(strict_types=1);
 
-namespace Miklcct\NationalRailTimetable\Models\Points;
+namespace Miklcct\RailOpenTimetableData\Models\Points;
 
-use Miklcct\NationalRailTimetable\Models\Time;
+use Miklcct\RailOpenTimetableData\Models\Time;
 
 interface HasArrival {
     public function getWorkingArrival() : Time;

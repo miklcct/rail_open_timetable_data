@@ -1,10 +1,10 @@
 <?php
 declare(strict_types=1);
 
-namespace Miklcct\NationalRailTimetable\Models;
+namespace Miklcct\RailOpenTimetableData\Models;
 
-use Miklcct\NationalRailTimetable\Enums\BankHoliday;
-use Miklcct\NationalRailTimetable\Enums\ShortTermPlanning;
+use Miklcct\RailOpenTimetableData\Enums\BankHoliday;
+use Miklcct\RailOpenTimetableData\Enums\ShortTermPlanning;
 use MongoDB\BSON\Persistable;
 
 class ServiceEntry implements Persistable {

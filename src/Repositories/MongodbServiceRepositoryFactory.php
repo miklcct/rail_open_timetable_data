@@ -1,7 +1,7 @@
 <?php
 declare(strict_types = 1);
 
-namespace Miklcct\NationalRailTimetable\Repositories;
+namespace Miklcct\RailOpenTimetableData\Repositories;
 
 use MongoDB\Database;
 use Psr\SimpleCache\CacheInterface;

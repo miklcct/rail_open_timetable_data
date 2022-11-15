@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 
-namespace Miklcct\NationalRailTimetable\Enums;
+namespace Miklcct\RailOpenTimetableData\Enums;
 
 // Currently, only scheduled passenger trains in National Rail system
 // are listed here.

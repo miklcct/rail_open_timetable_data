@@ -1,10 +1,10 @@
 <?php
 declare(strict_types=1);
 
-namespace Miklcct\NationalRailTimetable\Models\Points;
+namespace Miklcct\RailOpenTimetableData\Models\Points;
 
-use Miklcct\NationalRailTimetable\Enums\Activity;
-use Miklcct\NationalRailTimetable\Models\Time;
+use Miklcct\RailOpenTimetableData\Enums\Activity;
+use Miklcct\RailOpenTimetableData\Models\Time;
 
 trait DepartureTrait {
     public readonly Time $workingDeparture;

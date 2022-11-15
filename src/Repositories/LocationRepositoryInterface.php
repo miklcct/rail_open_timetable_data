@@ -1,10 +1,10 @@
 <?php
 declare(strict_types=1);
 
-namespace Miklcct\NationalRailTimetable\Repositories;
+namespace Miklcct\RailOpenTimetableData\Repositories;
 
-use Miklcct\NationalRailTimetable\Models\Location;
-use Miklcct\NationalRailTimetable\Models\LocationWithCrs;
+use Miklcct\RailOpenTimetableData\Models\Location;
+use Miklcct\RailOpenTimetableData\Models\LocationWithCrs;
 
 interface LocationRepositoryInterface {
     public function getLocationByCrs(string $crs) : ?LocationWithCrs /*?(Location&LocationWithCrs)*/;

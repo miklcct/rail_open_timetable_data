@@ -1,14 +1,14 @@
 <?php
 declare(strict_types=1);
 
-namespace Miklcct\NationalRailTimetable\Models;
+namespace Miklcct\RailOpenTimetableData\Models;
 
 use DateTimeImmutable;
-use Miklcct\NationalRailTimetable\Enums\TimeType;
-use Miklcct\NationalRailTimetable\Models\Points\TimingPoint;
+use Miklcct\RailOpenTimetableData\Enums\TimeType;
+use Miklcct\RailOpenTimetableData\Models\Points\TimingPoint;
 use MongoDB\BSON\Persistable;
 use DateInterval;
-use Miklcct\NationalRailTimetable\Enums\Mode;
+use Miklcct\RailOpenTimetableData\Enums\Mode;
 
 class ServiceCall implements Persistable {
     use BsonSerializeTrait;

@@ -1,22 +1,22 @@
 <?php
 declare(strict_types=1);
 
-namespace Miklcct\NationalRailTimetable\Repositories;
+namespace Miklcct\RailOpenTimetableData\Repositories;
 
 use InvalidArgumentException;
-use Miklcct\NationalRailTimetable\Enums\AssociationCategory;
-use Miklcct\NationalRailTimetable\Enums\AssociationDay;
-use Miklcct\NationalRailTimetable\Enums\AssociationType;
-use Miklcct\NationalRailTimetable\Enums\ShortTermPlanning;
-use Miklcct\NationalRailTimetable\Models\Association;
-use Miklcct\NationalRailTimetable\Models\AssociationEntry;
-use Miklcct\NationalRailTimetable\Models\Date;
-use Miklcct\NationalRailTimetable\Models\DatedAssociation;
-use Miklcct\NationalRailTimetable\Models\DatedService;
-use Miklcct\NationalRailTimetable\Models\FullService;
-use Miklcct\NationalRailTimetable\Models\Points\CallingPoint;
-use Miklcct\NationalRailTimetable\Models\Service;
-use Miklcct\NationalRailTimetable\Models\ServiceCall;
+use Miklcct\RailOpenTimetableData\Enums\AssociationCategory;
+use Miklcct\RailOpenTimetableData\Enums\AssociationDay;
+use Miklcct\RailOpenTimetableData\Enums\AssociationType;
+use Miklcct\RailOpenTimetableData\Enums\ShortTermPlanning;
+use Miklcct\RailOpenTimetableData\Models\Association;
+use Miklcct\RailOpenTimetableData\Models\AssociationEntry;
+use Miklcct\RailOpenTimetableData\Models\Date;
+use Miklcct\RailOpenTimetableData\Models\DatedAssociation;
+use Miklcct\RailOpenTimetableData\Models\DatedService;
+use Miklcct\RailOpenTimetableData\Models\FullService;
+use Miklcct\RailOpenTimetableData\Models\Points\CallingPoint;
+use Miklcct\RailOpenTimetableData\Models\Service;
+use Miklcct\RailOpenTimetableData\Models\ServiceCall;
 use function count;
 
 abstract class AbstractServiceRepository implements ServiceRepositoryInterface {

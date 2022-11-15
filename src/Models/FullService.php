@@ -1,21 +1,21 @@
 <?php
 declare(strict_types=1);
 
-namespace Miklcct\NationalRailTimetable\Models;
+namespace Miklcct\RailOpenTimetableData\Models;
 
 use DateInterval;
 use DateTimeImmutable;
 use LogicException;
-use Miklcct\NationalRailTimetable\Enums\AssociationCategory;
-use Miklcct\NationalRailTimetable\Enums\TimeType;
-use Miklcct\NationalRailTimetable\Exceptions\UnreachableException;
-use Miklcct\NationalRailTimetable\Models\Points\CallingPoint;
-use Miklcct\NationalRailTimetable\Models\Points\DestinationPoint;
-use Miklcct\NationalRailTimetable\Models\Points\HasArrival;
-use Miklcct\NationalRailTimetable\Models\Points\HasDeparture;
-use Miklcct\NationalRailTimetable\Models\Points\OriginPoint;
-use Miklcct\NationalRailTimetable\Models\Points\PassingPoint;
-use Miklcct\NationalRailTimetable\Models\Points\TimingPoint;
+use Miklcct\RailOpenTimetableData\Enums\AssociationCategory;
+use Miklcct\RailOpenTimetableData\Enums\TimeType;
+use Miklcct\RailOpenTimetableData\Exceptions\UnreachableException;
+use Miklcct\RailOpenTimetableData\Models\Points\CallingPoint;
+use Miklcct\RailOpenTimetableData\Models\Points\DestinationPoint;
+use Miklcct\RailOpenTimetableData\Models\Points\HasArrival;
+use Miklcct\RailOpenTimetableData\Models\Points\HasDeparture;
+use Miklcct\RailOpenTimetableData\Models\Points\OriginPoint;
+use Miklcct\RailOpenTimetableData\Models\Points\PassingPoint;
+use Miklcct\RailOpenTimetableData\Models\Points\TimingPoint;
 use UnexpectedValueException;
 use function array_filter;
 use function array_map;

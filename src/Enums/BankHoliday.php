@@ -1,9 +1,9 @@
 <?php
 declare(strict_types=1);
 
-namespace Miklcct\NationalRailTimetable\Enums;
+namespace Miklcct\RailOpenTimetableData\Enums;
 
-use Miklcct\NationalRailTimetable\Models\Date;
+use Miklcct\RailOpenTimetableData\Models\Date;
 
 enum BankHoliday : string {
     case NONE = '';

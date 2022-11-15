@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 
-namespace Miklcct\NationalRailTimetable\Enums;
+namespace Miklcct\RailOpenTimetableData\Enums;
 
 enum ShortTermPlanning : string {
     case PERMANENT = 'P';

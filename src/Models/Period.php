@@ -1,9 +1,9 @@
 <?php
 declare(strict_types=1);
 
-namespace Miklcct\NationalRailTimetable\Models;
+namespace Miklcct\RailOpenTimetableData\Models;
 
-use Miklcct\NationalRailTimetable\Attributes\ElementType;
+use Miklcct\RailOpenTimetableData\Attributes\ElementType;
 use MongoDB\BSON\Persistable;
 
 class Period implements Persistable {

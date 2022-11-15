@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 
-namespace Miklcct\NationalRailTimetable\Exceptions;
+namespace Miklcct\RailOpenTimetableData\Exceptions;
 
 use RuntimeException;
 

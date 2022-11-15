@@ -1,9 +1,9 @@
 <?php
 declare(strict_types=1);
 
-namespace Miklcct\NationalRailTimetable\Models;
+namespace Miklcct\RailOpenTimetableData\Models;
 
-use Miklcct\NationalRailTimetable\Enums\ShortTermPlanning;
+use Miklcct\RailOpenTimetableData\Enums\ShortTermPlanning;
 
 trait OverlayTrait {
     public function isSuperior(?self $compare, bool $permanent_only = false) : bool {

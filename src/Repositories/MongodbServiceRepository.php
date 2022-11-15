@@ -1,18 +1,18 @@
 <?php
 declare(strict_types=1);
 
-namespace Miklcct\NationalRailTimetable\Repositories;
+namespace Miklcct\RailOpenTimetableData\Repositories;
 
 use DateTimeImmutable;
-use Miklcct\NationalRailTimetable\Enums\BankHoliday;
-use Miklcct\NationalRailTimetable\Enums\ShortTermPlanning;
-use Miklcct\NationalRailTimetable\Enums\TimeType;
-use Miklcct\NationalRailTimetable\Models\Date;
-use Miklcct\NationalRailTimetable\Models\DatedService;
-use Miklcct\NationalRailTimetable\Models\DepartureBoard;
-use Miklcct\NationalRailTimetable\Models\Service;
-use Miklcct\NationalRailTimetable\Models\ServiceCallWithDestinationAndCalls;
-use Miklcct\NationalRailTimetable\Models\ServiceEntry;
+use Miklcct\RailOpenTimetableData\Enums\BankHoliday;
+use Miklcct\RailOpenTimetableData\Enums\ShortTermPlanning;
+use Miklcct\RailOpenTimetableData\Enums\TimeType;
+use Miklcct\RailOpenTimetableData\Models\Date;
+use Miklcct\RailOpenTimetableData\Models\DatedService;
+use Miklcct\RailOpenTimetableData\Models\DepartureBoard;
+use Miklcct\RailOpenTimetableData\Models\Service;
+use Miklcct\RailOpenTimetableData\Models\ServiceCallWithDestinationAndCalls;
+use Miklcct\RailOpenTimetableData\Models\ServiceEntry;
 use MongoDB\BSON\Regex;
 use MongoDB\Collection;
 use MongoDB\Database;

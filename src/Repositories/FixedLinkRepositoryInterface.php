@@ -1,9 +1,9 @@
 <?php
 declare(strict_types=1);
 
-namespace Miklcct\NationalRailTimetable\Repositories;
+namespace Miklcct\RailOpenTimetableData\Repositories;
 
-use Miklcct\NationalRailTimetable\Models\FixedLink;
+use Miklcct\RailOpenTimetableData\Models\FixedLink;
 
 interface FixedLinkRepositoryInterface {
     /**

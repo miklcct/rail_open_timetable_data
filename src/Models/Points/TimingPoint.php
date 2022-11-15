@@ -1,16 +1,16 @@
 <?php
 declare(strict_types=1);
 
-namespace Miklcct\NationalRailTimetable\Models\Points;
+namespace Miklcct\RailOpenTimetableData\Models\Points;
 
-use Miklcct\NationalRailTimetable\Attributes\ElementType;
-use Miklcct\NationalRailTimetable\Enums\Activity;
-use Miklcct\NationalRailTimetable\Enums\TimeType;
-use Miklcct\NationalRailTimetable\Models\BsonSerializeTrait;
-use Miklcct\NationalRailTimetable\Models\Location;
-use Miklcct\NationalRailTimetable\Models\LocationWithCrs;
-use Miklcct\NationalRailTimetable\Models\Time;
-use Miklcct\NationalRailTimetable\Models\TiplocLocation;
+use Miklcct\RailOpenTimetableData\Attributes\ElementType;
+use Miklcct\RailOpenTimetableData\Enums\Activity;
+use Miklcct\RailOpenTimetableData\Enums\TimeType;
+use Miklcct\RailOpenTimetableData\Models\BsonSerializeTrait;
+use Miklcct\RailOpenTimetableData\Models\Location;
+use Miklcct\RailOpenTimetableData\Models\LocationWithCrs;
+use Miklcct\RailOpenTimetableData\Models\Time;
+use Miklcct\RailOpenTimetableData\Models\TiplocLocation;
 use MongoDB\BSON\Persistable;
 
 abstract class TimingPoint implements Persistable {

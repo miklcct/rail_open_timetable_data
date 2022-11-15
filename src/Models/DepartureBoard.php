@@ -1,11 +1,11 @@
 <?php
 declare(strict_types=1);
 
-namespace Miklcct\NationalRailTimetable\Models;
+namespace Miklcct\RailOpenTimetableData\Models;
 
 use DateTimeImmutable;
 use InvalidArgumentException;
-use Miklcct\NationalRailTimetable\Enums\TimeType;
+use Miklcct\RailOpenTimetableData\Enums\TimeType;
 use RuntimeException;
 use function array_filter;
 use function array_key_exists;

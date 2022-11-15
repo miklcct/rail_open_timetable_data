@@ -1,20 +1,15 @@
 {
-    "name" : "miklcct/national_rail_timetable",
-    "description" : "National Rail Timetable on the web",
-    "type" : "project",
-    "license" : "AGPL-3.0-or-later",
+    "name" : "miklcct/rail_open_timetable_data",
+    "description" : "Library for handling rail open timetable data",
+    "type" : "library",
+    "license" : "MIT",
     "require" : {
         "php" : "^8.1",
         "thecodingmachine/safe": "^2.1",
         "mongodb/mongodb": "^1.12",
         "ext-mongodb" : "*",
-        "miklcct/thin_php_app": "^0.6.1",
-        "guzzlehttp/guzzle": "^7.5",
-        "http-interop/http-factory-guzzle": "^1.2",
-        "php-di/php-di": "^6.4",
         "psr/simple-cache": "^1.0",
-        "symfony/cache": "^6.1",
-        "filp/whoops": "^2.14"
+        "symfony/cache": "^6.1"
     },
     "require-dev" : {
         "roave/security-advisories" : "dev-latest",
@@ -22,16 +17,15 @@
     },
     "autoload" : {
         "psr-4" : {
-            "Miklcct\\NationalRailTimetable\\" : "src/"
+            "Miklcct\\RailOpenTimetableData\\" : "src/"
         },
         "files" : [
-            "src/Views/functions.php",
             "src/functions.php"
         ]
     },
     "autoload-dev" : {
         "psr-4" : {
-            "Test\\Miklcct\\NationalRailTimetable\\" : "test/"
+            "Test\\Miklcct\\RailOpenTimetableData\\" : "test/"
         }
     }
 }
