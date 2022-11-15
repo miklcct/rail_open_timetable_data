@@ -22,6 +22,8 @@ use function array_chunk;
 use function array_filter;
 use function array_map;
 use function array_values;
+use function Miklcct\RailOpenTimetableData\get_generated;
+use function Miklcct\RailOpenTimetableData\set_generated;
 use function preg_quote;
 
 class MongodbServiceRepository extends AbstractServiceRepository {
@@ -261,15 +263,11 @@ class MongodbServiceRepository extends AbstractServiceRepository {
     }
 
     public function getGeneratedDate(): ?Date {
-        return $this->getMetaCollection()->findOne(['generated' => ['$exists' => true]])?->generated;
+        return get_generated($this->database);
     }
 
     public function setGeneratedDate(?Date $date) : void {
-        $this->getMetaCollection()->insertOne(['generated' => $date]);
-    }
-
-    private function getMetaCollection() : Collection {
-        return $this->database->selectCollection('metadata');
+        set_generated($this->database, $date);
     }
 
     private readonly Collection $servicesCollection;
