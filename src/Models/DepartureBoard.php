@@ -135,7 +135,7 @@ class DepartureBoard {
                                         $service_call->precedingCalls
                                         , static function (ServiceCallWithDestination $filter_call) use ($filter_crs) : bool {
                                             $location = $filter_call->call->location;
-                                            return $location instanceof LocationWithCrs && in_array($location->getCrsCode(), $filter_crs, true);
+                                            return $location instanceof LocationWithCrs && ($filter_crs === [] || in_array($location->getCrsCode(), $filter_crs, true));
                                         }
                                     )
                                 )
