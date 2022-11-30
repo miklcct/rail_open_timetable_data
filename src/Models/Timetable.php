@@ -4,9 +4,11 @@ declare(strict_types=1);
 namespace Miklcct\RailOpenTimetableData\Models;
 
 use Miklcct\RailOpenTimetableData\Exceptions\UnreachableException;
+use Miklcct\RailOpenTimetableData\Repositories\LocationRepositoryInterface;
 use function array_filter;
 use function array_reverse;
 use function count;
+use function Safe\json_decode as json_decode;
 
 class Timetable {
     // this number must be greater than the maximum number of calls for a train
@@ -89,6 +91,52 @@ class Timetable {
                             // try another one first
                             continue;
                         }
+                        if ($stations === []) {
+                            // seed stations from pregenerated list
+                            $preorder = json_decode(file_get_contents(__DIR__ . '/../../resource/stop_orders.json'));
+                            $max_count = 0;
+                            foreach ($preorder as $list) {
+                                foreach ([$list, array_reverse($list)] as $list_direction) {
+                                    $count = 0;
+                                    $start_index = 0;
+                                    foreach ($order as $item) {
+                                        $index = $start_index;
+                                        while (isset($list_direction[$index])) {
+                                            /** @var LocationWithCrs $station */
+                                            $station = $item[0];
+                                            if ($list_direction[$index] === $station->getCrsCode()) {
+                                                ++$count;
+                                                $start_index = $index + 1;
+                                                break;
+                                            }
+                                            ++$index;
+                                        }
+                                    }
+                                    if ($count > $max_count) {
+                                        $stations = array_map(
+                                            static fn(string $crs) => new class($crs) implements LocationWithCrs {
+                                                public function __construct(public readonly string $crsCode) {}
+
+                                                public function getCrsCode() : string {
+                                                    return $this->crsCode;
+                                                }
+
+                                                public function promoteToStation(LocationRepositoryInterface $location_repository) : ?Station {
+                                                    $station = $location_repository->getLocationByCrs($this->getCrsCode());
+                                                    if (!$station instanceof Station) {
+                                                        return null;
+                                                    }
+                                                    return $station;
+                                                }
+                                            }
+                                            , $list_direction
+                                        );
+                                        $max_count = $count;
+                                    }
+                                }
+                            }
+                        }
+
                         foreach ($order as $j => $item) {
                             if ($item[1] !== null) {
                                 for ($k = $j - 1; $k >= 0 && $order[$k][1] === null; --$k) {
@@ -112,7 +160,7 @@ class Timetable {
 
                         $new_stations = array_reduce(
                             $order
-                            , static fn(array $carry, array $item) : array => $carry + [$item[1] => $item[0]]
+                            , static fn(array $carry, array $item) : array => [$item[1] => $item[0]] + $carry
                             , array_combine(
                                 array_map(
                                     static fn(int $x) => $x * self::MULTIPLIER
@@ -135,7 +183,18 @@ class Timetable {
                 $common_check = false;
             }
         }
+        /** @var LocationWithCrs[] $stations */
         $stations = array_merge([$board->calls[0]->call->location], $stations);
+        foreach ($stations as &$station) {
+            if (!$station instanceof Location) {
+                foreach ($stations as $find_station) {
+                    if ($find_station instanceof Location && $find_station->getCrsCode() === $station->getCrsCode()) {
+                        $station = $find_station;
+                    }
+                }
+            }
+        }
+        unset($station);
 
         $matrix = [];
 
