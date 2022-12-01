@@ -79,7 +79,7 @@ class Timetable {
                                         }
                                         $i += $arrival_mode ? -1 : 1;
                                     }
-                                    if (!$found) {
+                                    if ($found === null) {
                                         $i = $old_i;
                                     }
                                     $order[] = [$current_station, $found === null ? null : $found * self::MULTIPLIER];

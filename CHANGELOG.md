@@ -1,3 +1,6 @@
+## [1.2.1] - 2022-12-02
+* Fix a mistake causing crash when generating timetable
+
 ## [1.2.0] - 2022-11-30
 * Preorder some stations in timetables
 
