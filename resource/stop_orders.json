@@ -5,12 +5,16 @@
         "WOL", "NMP", "LBK", "RUG", "COV", "CNL", "THL", "BKW", "HIA", "BHI", "MGN", "LEH", "SCF", "ADD", "BHM"
     ],
     [
-        "WAT", "VXH", "QRB" ,"CLJ",
+        "WAT", "VXH", "QRB",
+        "VIC", "BAK" ,"CLJ",
         "WNT", "PUT", "BNS",
         "BNI", "CHK", "KWB", "BFD", "SYL", "ISL", "HOU",
         "MTL", "NSH", "RMD", "SMG", "TWI",
         "WTN", "FEL", "AFS", "SNS", "WNR", "EGH", "VIR", "ACT", "RDG", "CHY", "ASN",
-        "EAD", "WIM", "RAY", "MOT", "CSS", "EPS", "LHD", "DKG", "NEM",
+        "EAD", "WIM", "RAY", "MOT", "CSS",
+        "WCP", "SNL", "EWW",
+        "BAL", "MTC", "MIJ", "HCB", "CSH", "SUO", "CHE", "EWE",
+        "EPS", "LHD", "DKG", "NEM",
         "NBT", "KNG", "HMW", "TED", "STW", "SHP",
         "BRS", "SUR", "HMC", "CSD", "ESH", "HER", "WAL", "WYB", "BFN", "WBY", "WOK",
         "GLD", "HSL", "HAV",
