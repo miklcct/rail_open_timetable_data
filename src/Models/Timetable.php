@@ -135,6 +135,10 @@ class Timetable {
                                     }
                                 }
                             }
+                            if ($stations !== []) {
+                                // stations have now seeded - need to rearrange index again
+                                continue;
+                            }
                         }
 
                         foreach ($order as $j => $item) {
