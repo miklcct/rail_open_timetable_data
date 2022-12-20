@@ -1,3 +1,6 @@
+## [1.2.4] - 2022-12-20
+* Improve station ordering in arrival mode
+
 ## [1.2.3] - 2022-12-19
 * Fix station seeding not working properly in arrival mode
 

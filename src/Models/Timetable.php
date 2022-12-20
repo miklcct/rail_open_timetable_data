@@ -41,9 +41,6 @@ class Timetable {
                 <=> count($arrival_mode ? $b->precedingCalls : $b->subsequentCalls)
             )
         );
-        if ($arrival_mode) {
-            $calls = array_reverse($calls);
-        }
         $common_check = true;
         while (array_filter($calls) !== []) {
             $initial_count = count(array_filter($calls));
