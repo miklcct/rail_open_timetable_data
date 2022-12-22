@@ -10,7 +10,6 @@ use DateTimeZone;
 use JsonSerializable;
 use MongoDB\BSON\Persistable;
 use MongoDB\BSON\UTCDateTime;
-use Safe\DateTimeImmutable as SafeDateTimeImmutable;
 use UnexpectedValueException;
 
 class Date implements JsonSerializable, Persistable {
@@ -23,7 +22,7 @@ class Date implements JsonSerializable, Persistable {
     }
 
     public static function today() : static {
-        return static::fromDateTimeInterface(new SafeDateTimeImmutable());
+        return static::fromDateTimeInterface(new DateTimeImmutable());
     }
 
     private function validateDate() : void {
@@ -62,7 +61,7 @@ class Date implements JsonSerializable, Persistable {
     }
 
     public function toDateTimeImmutable(Time $time = null, ?DateTimeZone $timezone = null) : DateTimeImmutable {
-        return (new SafeDateTimeImmutable('now', $timezone))
+        return (new DateTimeImmutable('now', $timezone))
             ->setDate($this->year, $this->month, $this->day)
             ->setTime($time?->hours ?? 0, $time?->minutes ?? 0, $time?->halfMinute ? 30 : 0);
     }

@@ -10,7 +10,7 @@ use Miklcct\RailOpenTimetableData\Models\Station;
 use Miklcct\RailOpenTimetableData\Models\Time;
 use Miklcct\RailOpenTimetableData\Repositories\FixedLinkRepositoryInterface;
 use Miklcct\RailOpenTimetableData\Repositories\LocationRepositoryInterface;
-use Safe\DateTimeImmutable;
+use DateTimeImmutable;
 use function explode;
 use function fgetcsv;
 
