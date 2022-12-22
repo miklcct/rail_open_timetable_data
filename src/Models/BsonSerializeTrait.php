@@ -8,6 +8,8 @@ use DateTimeInterface;
 use Miklcct\RailOpenTimetableData\Attributes\ElementType;
 use MongoDB\BSON\UTCDateTime;
 use ReflectionClass;
+use ReflectionNamedType;
+use RuntimeException;
 use stdClass;
 use UnexpectedValueException;
 use function is_a;
@@ -34,7 +36,10 @@ trait BsonSerializeTrait {
                 $key = $property->name;
                 $type = $property->getType();
                 $value = $data[$key];
-                if ($type?->getName() === 'array') {
+                if (!$type instanceof ReflectionNamedType) {
+                    throw new RuntimeException('This trait supports named type only.');
+                }
+                if ($type->getName() === 'array') {
                     if ($value instanceof stdClass) {
                         $value = (array)$value;
                     }
@@ -49,14 +54,14 @@ trait BsonSerializeTrait {
                     }
                 }
                 /** @noinspection PhpVariableVariableInspection */
-                $this->$key = self::processValue($type?->getName(), $value);
+                $this->$key = self::processValue($type->getName(), $value);
             }
         }
     }
 
     private static function processValue(string $type, mixed $value) : mixed {
         if (is_a($type, BackedEnum::class, true)) {
-            return $type::tryFrom($value->value);
+            return $type::tryFrom(is_object($value) ? $value->value : $value);
         }
         if (is_a($type, DateTimeInterface::class, true)) {
             if (!$value instanceof UTCDateTime) {

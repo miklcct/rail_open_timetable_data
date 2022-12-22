@@ -165,12 +165,16 @@ class MongodbServiceRepository extends AbstractServiceRepository {
         $possibilities = [];
 
         foreach ($query_results as $entry) {
+            // this is to make the code compatible with both before and after https://github.com/mongodb/mongo-php-driver/pull/1378
+            $get_value_or_self = function ($item) {
+                return is_object($item) ? $item->value : $item;
+            };
             for ($date = $from_date; $date->compare($to_date) <= 0; $date = $date->addDays(1)) {
                 $skeleton_service = new ServiceEntry(
                     $entry->uid
                     , $entry->period
-                    , BankHoliday::from($entry->excludeBankHoliday->value)
-                    , ShortTermPlanning::from($entry->shortTermPlanning->value)
+                    , BankHoliday::from($get_value_or_self($entry->excludeBankHoliday))
+                    , ShortTermPlanning::from($get_value_or_self($entry->shortTermPlanning))
                 );
                 if ($skeleton_service->runsOnDate($date)) {
                     $possibilities[] = new DatedService($skeleton_service, $date);
