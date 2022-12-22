@@ -1,3 +1,6 @@
+## [1.2.5] - 2022-12-22
+* PHP 8.2 compatibility in regard to MongoDB and symfony cache
+
 ## [1.2.4] - 2022-12-20
 * Improve station ordering in arrival mode
 
