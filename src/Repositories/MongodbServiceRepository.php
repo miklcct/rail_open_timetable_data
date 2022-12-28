@@ -81,12 +81,17 @@ class MongodbServiceRepository extends AbstractServiceRepository {
     public function getService(string $uid, Date $date) : ?DatedService {
         $query_results = $this->servicesCollection->find(
             [
-                'uid' => $uid,
-                'period.from' => ['$lte' => $date],
-                'period.to' => ['$gte' => $date],
-            ] + ($this->permanentOnly ? ['shortTermPlanning.value' => ShortTermPlanning::PERMANENT->value] : [])
+                '$and' => [
+                    [
+                        'uid' => $uid,
+                        'period.from' => ['$lte' => $date],
+                        'period.to' => ['$gte' => $date],
+                    ],
+                    $this->getShortTermPlanningPredicate(),
+                ]
+            ]
             // this will order STP before permanent
-            , ['sort' => ['shortTermPlanning.value' => 1]]
+            , ['sort' => ['shortTermPlanning.value' => 1, 'shortTermPlanning' => 1]]
         );
         /** @var ServiceEntry $result */
         foreach ($query_results as $result) {
@@ -109,13 +114,16 @@ class MongodbServiceRepository extends AbstractServiceRepository {
                 array_map(
                     static fn(stdClass $object) => $object->uid
                     , $this->servicesCollection->find(
-                    [
-                            'period.from' => ['$lte' => $date],
-                            'period.to' => ['$gte' => $date],
-                            '$or' => [
-                                ['points.serviceProperty.rsid' => $predicate],
-                            ],
-                        ] + ($this->permanentOnly ? ['shortTermPlanning.value' => ShortTermPlanning::PERMANENT->value] : [])
+                        [
+                            '$and' => [
+                                [
+                                    'period.from' => ['$lte' => $date],
+                                    'period.to' => ['$gte' => $date],
+                                    'points.serviceProperty.rsid' => $predicate,
+                                ],
+                                $this->getShortTermPlanningPredicate(),
+                            ]
+                        ]
                         , [
                             'projection' => ['uid' => 1, '_id' => 0]
                         ]
@@ -143,21 +151,26 @@ class MongodbServiceRepository extends AbstractServiceRepository {
         // get skeleton services - incomplete objects!
         $query_results = $this->servicesCollection->find(
             [
-                'points' => [
-                    '$elemMatch' => [
-                        'location.crsCode' => $crs,
-                        match($time_type) {
-                            TimeType::WORKING_ARRIVAL => 'workingArrival',
-                            TimeType::PUBLIC_ARRIVAL => 'publicArrival',
-                            TimeType::PASS => 'pass',
-                            TimeType::PUBLIC_DEPARTURE => 'publicDeparture',
-                            TimeType::WORKING_DEPARTURE => 'workingDeparture',
-                        } => ['$ne' => null],
+                '$and' => [
+                    [
+                        'points' => [
+                            '$elemMatch' => [
+                                'location.crsCode' => $crs,
+                                match($time_type) {
+                                    TimeType::WORKING_ARRIVAL => 'workingArrival',
+                                    TimeType::PUBLIC_ARRIVAL => 'publicArrival',
+                                    TimeType::PASS => 'pass',
+                                    TimeType::PUBLIC_DEPARTURE => 'publicDeparture',
+                                    TimeType::WORKING_DEPARTURE => 'workingDeparture',
+                                } => ['$ne' => null],
+                            ],
+                        ],
+                        'period.from' => ['$lte' => $to_date],
+                        'period.to' => ['$gte' => $from_date],
                     ],
-                ],
-                'period.from' => ['$lte' => $to_date],
-                'period.to' => ['$gte' => $from_date],
-            ] + ($this->permanentOnly ? ['shortTermPlanning.value' => ShortTermPlanning::PERMANENT->value] : [])
+                    $this->getShortTermPlanningPredicate(),
+                ]
+            ]
             , ['projection' => ['uid' => 1, '_id' => 0, 'period' => 1, 'excludeBankHoliday' => 1, 'shortTermPlanning' => 1]]
         );
 
@@ -203,16 +216,21 @@ class MongodbServiceRepository extends AbstractServiceRepository {
         }
         $real_services = $this->servicesCollection->find(
             [
-                '$or' => array_map(
-                    static fn(DatedService $dated_service) =>
-                        [
-                            'uid' => $dated_service->service->uid,
-                            'period.from' => ['$lte' => $dated_service->date],
-                            'period.to' => ['$gte' => $dated_service->date],
-                        ]
-                    , $possibilities
-                )
-            ] + ($this->permanentOnly ? ['shortTermPlanning.value' => ShortTermPlanning::PERMANENT->value] : [])
+                '$and' => [
+                    [
+                        '$or' => array_map(
+                            static fn(DatedService $dated_service) =>
+                                [
+                                    'uid' => $dated_service->service->uid,
+                                    'period.from' => ['$lte' => $dated_service->date],
+                                    'period.to' => ['$gte' => $dated_service->date],
+                                ]
+                            , $possibilities
+                        ),
+                    ],
+                    $this->getShortTermPlanningPredicate(),
+                ]
+            ]
         )->toArray();
 
         // replace skeleton services with real services - handle STP here
@@ -272,6 +290,17 @@ class MongodbServiceRepository extends AbstractServiceRepository {
 
     public function setGeneratedDate(?Date $date) : void {
         set_generated($this->database, $date);
+    }
+
+    private function getShortTermPlanningPredicate() : array {
+        return $this->permanentOnly 
+            ? [
+                '$or' => [
+                    ['shortTermPlanning.value' => ShortTermPlanning::PERMANENT->value],
+                    ['shortTermPlanning' => ShortTermPlanning::PERMANENT->value]
+                ]
+            ] 
+            : ['$expr' => ['$eq' => [0, 0]]];
     }
 
     private readonly Collection $servicesCollection;

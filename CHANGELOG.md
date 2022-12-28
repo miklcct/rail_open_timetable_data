@@ -1,3 +1,6 @@
+## [1.2.6] - 2022-12-22
+* Fix permanent timetable in new MongoDB library
+
 ## [1.2.5] - 2022-12-22
 * PHP 8.2 compatibility in regard to MongoDB and symfony cache
 
