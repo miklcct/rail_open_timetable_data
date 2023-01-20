@@ -1,3 +1,6 @@
+## [1.3.0] - 2023-01-20
+* Add more train categories
+
 ## [1.2.6] - 2022-12-22
 * Fix permanent timetable in new MongoDB library
 
