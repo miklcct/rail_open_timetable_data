@@ -22,6 +22,9 @@ abstract class Location implements Persistable {
     }
 
     public function getShortName() : string {
+        if (str_contains($this->name, 'MAESTEG')) {
+            return $this->name;
+        }
         return preg_replace('/ \(.*\)$/', '', $this->name);
     }
 
