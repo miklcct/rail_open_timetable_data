@@ -1,3 +1,7 @@
+## [1.3.1] - 2023-05-08
+* Add Lewes - Hastings station ordering
+* Don't remove the bracketed part of Maesteg (Ewenny Road) in the short name
+
 ## [1.3.0] - 2023-01-20
 * Add more train categories
 
