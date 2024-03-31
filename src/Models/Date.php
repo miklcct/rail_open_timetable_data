@@ -61,6 +61,9 @@ class Date implements JsonSerializable, Persistable {
     }
 
     public function toDateTimeImmutable(Time $time = null, ?DateTimeZone $timezone = null) : DateTimeImmutable {
+        if ($timezone === null) {
+            $timezone = new DateTimeZone('Europe/London');
+        }
         return (new DateTimeImmutable('now', $timezone))
             ->setDate($this->year, $this->month, $this->day)
             ->setTime($time?->hours ?? 0, $time?->minutes ?? 0, $time?->halfMinute ? 30 : 0);
