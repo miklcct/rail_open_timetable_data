@@ -22,6 +22,7 @@ use function array_map;
 use function array_merge;
 use function array_values;
 use function assert;
+use function Miklcct\RailOpenTimetableData\get_absolute_time_zone;
 
 /**
  * @property-read Service $service
@@ -69,6 +70,7 @@ class FullService extends DatedService {
                                             $dated_association->secondaryService->service->getDestination()->getPublicOrWorkingArrival(),
                                         default => throw new UnreachableException(),
                                     }
+                                    , $dated_association->secondaryService->getAbsoluteTimeZone()
                                 );
                             }
                             , [$a, $b]
@@ -276,6 +278,7 @@ class FullService extends DatedService {
             assert($association_point instanceof CallingPoint);
             $association_timestamp = $primary_service->date->toDateTimeImmutable(
                 $association_point->getPublicOrWorkingDeparture()
+                , $primary_service->getAbsoluteTimeZone()
             );
             $join_portion = $primary_service->getCalls(
                 $time_type
@@ -296,6 +299,7 @@ class FullService extends DatedService {
             assert($association_point instanceof CallingPoint);
             $association_timestamp = $primary_service->date->toDateTimeImmutable(
                 $association_point->getPublicOrWorkingArrival()
+                , $primary_service->getAbsoluteTimeZone()
             );
             $divide_portion = $primary_service->getCalls(
                 $time_type
@@ -317,6 +321,7 @@ class FullService extends DatedService {
                     if ($association->category === AssociationCategory::DIVIDE) {
                         $divide_timestamp = $this->date->toDateTimeImmutable(
                             $association_point->getPublicOrWorkingArrival()
+                            , $this->getAbsoluteTimeZone()
                         );
                         return $divide_timestamp < $from || $divide_timestamp < $base
                             ? []
@@ -333,6 +338,7 @@ class FullService extends DatedService {
                     if ($association->category === AssociationCategory::JOIN) {
                         $join_timestamp = $this->date->toDateTimeImmutable(
                             $association_point->getPublicOrWorkingDeparture()
+                            , $this->getAbsoluteTimeZone()
                         );
                         return $join_timestamp > $to || $join_timestamp > $base
                             ? []
@@ -342,6 +348,7 @@ class FullService extends DatedService {
                                 , $from
                                 , $secondary_service->date->toDateTimeImmutable(
                                     $secondary_service->service->getDestination()->getPublicOrWorkingArrival()
+                                    , $secondary_service->getAbsoluteTimeZone()
                                 )
                                 , $with_subsequent_calls
                             );

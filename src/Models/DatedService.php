@@ -4,10 +4,12 @@ declare(strict_types=1);
 namespace Miklcct\RailOpenTimetableData\Models;
 
 use DateTimeImmutable;
+use DateTimeZone;
 use LogicException;
 use Miklcct\RailOpenTimetableData\Enums\TimeType;
 use Miklcct\RailOpenTimetableData\Models\Points\TimingPoint;
 use MongoDB\BSON\Persistable;
+use function Miklcct\RailOpenTimetableData\get_absolute_time_zone;
 
 class DatedService implements Persistable {
     use BsonSerializeTrait;
@@ -30,20 +32,19 @@ class DatedService implements Persistable {
         , DateTimeImmutable $from = null
         , DateTimeImmutable $to = null
     ) : array {
-        $service = $this->service;
-        if (!$service instanceof Service) {
-            throw new LogicException('The service within DatedService must be a proper Service to get calling points.');
-        }
+        $service = $this->assertService();
+        // assume that a train stick to BST / GMT on departure regardless of clock change en-route
+        $time_zone = $this->getAbsoluteTimeZone();
         return array_values(
             array_filter(
                 array_map(
-                    function (TimingPoint $point) use ($service, $crs, $time_type) : ?ServiceCall {
+                    function (TimingPoint $point) use ($time_zone, $service, $crs, $time_type) : ?ServiceCall {
                         $location = $point->location;
                         if ($crs !== null && !($location instanceof LocationWithCrs && $location->getCrsCode() === $crs)) {
                             return null;
                         }
                         $time = $point->getTime($time_type);
-                        $timestamp = $time === null ? null : $this->date->toDateTimeImmutable($time);
+                        $timestamp = $time === null ? null : $this->date->toDateTimeImmutable($time, $time_zone);
                         return $time === null ? null : new ServiceCall(
                             $timestamp
                             , $time_type
@@ -65,5 +66,17 @@ class DatedService implements Persistable {
                 }
             )
         );
+    }
+
+    public function getAbsoluteTimeZone() : DateTimeZone {
+        return get_absolute_time_zone($this->date->toDateTimeImmutable($this->assertService()->getOrigin()->getWorkingDeparture()));
+    }
+
+    private function assertService() : Service {
+        $service = $this->service;
+        if (!$service instanceof Service) {
+            throw new LogicException('The service within DatedService must be a proper Service to get calling points.');
+        }
+        return $service;
     }
 }

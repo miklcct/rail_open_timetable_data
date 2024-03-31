@@ -1,3 +1,7 @@
+## [1.3.2] - 2024-03-31
+* Assume that a train always stick to the clock at departure regardless of DST
+  change en-route.
+
 ## [1.3.1] - 2023-05-08
 * Add Lewes - Hastings station ordering
 * Don't remove the bracketed part of Maesteg (Ewenny Road) in the short name

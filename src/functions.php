@@ -3,6 +3,9 @@ declare(strict_types=1);
 
 namespace Miklcct\RailOpenTimetableData;
 
+use DateTimeInterface;
+use DateTimeZone;
+use Miklcct\RailOpenTimetableData\Enums\TimeType;
 use Miklcct\RailOpenTimetableData\Models\Date;
 use MongoDB\Database;
 use function Safe\file_get_contents;
@@ -48,4 +51,18 @@ function get_generated(Database $database) : ?Date {
 
 function set_generated(Database $database, ?Date $date) {
     $database->selectCollection('metadata')->insertOne(['generated' => $date]);
+}
+
+/**
+ * Get the absolute time zone (specified in UTC offset) of a timestamp
+ *
+ * @param DateTimeInterface $date_time
+ * @return DateTimeZone
+ */
+function get_absolute_time_zone(DateTimeInterface $date_time) : DateTimeZone {
+    $utc_offset = $date_time->getOffset();
+    $negative = $utc_offset < 0;
+    $hours = intdiv(abs($utc_offset), 60 * 60);
+    $minutes = intdiv(abs($utc_offset) - $hours * 60 * 60, 60);
+    return new DateTimeZone(sprintf('%s%02d:%02d', $negative ? '-' : '+', $hours, $minutes));
 }
