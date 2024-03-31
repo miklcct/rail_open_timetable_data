@@ -69,7 +69,7 @@ class DatedService implements Persistable {
     }
 
     public function getAbsoluteTimeZone() : DateTimeZone {
-        return get_absolute_time_zone($this->date->toDateTimeImmutable($this->assertService()->getOrigin()->getWorkingDeparture()));
+        return get_absolute_time_zone($this->date, $this->assertService()->getOrigin()->getWorkingDeparture());
     }
 
     private function assertService() : Service {
