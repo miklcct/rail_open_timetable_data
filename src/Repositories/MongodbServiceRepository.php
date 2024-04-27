@@ -7,7 +7,10 @@ use DateTimeImmutable;
 use Miklcct\RailOpenTimetableData\Enums\BankHoliday;
 use Miklcct\RailOpenTimetableData\Enums\ShortTermPlanning;
 use Miklcct\RailOpenTimetableData\Enums\TimeType;
+use Miklcct\RailOpenTimetableData\Models\Association;
+use Miklcct\RailOpenTimetableData\Models\AssociationEntry;
 use Miklcct\RailOpenTimetableData\Models\Date;
+use Miklcct\RailOpenTimetableData\Models\DatedAssociation;
 use Miklcct\RailOpenTimetableData\Models\DatedService;
 use Miklcct\RailOpenTimetableData\Models\DepartureBoard;
 use Miklcct\RailOpenTimetableData\Models\Service;
@@ -38,12 +41,20 @@ class MongodbServiceRepository extends AbstractServiceRepository {
     }
 
     protected function getAssociationEntries(string $uid, Date $date) : array {
+        return $this->associationsCollection->find($this->getAssociationPredicate($uid, $date))
+            ->toArray();
+    }
+
+    /**
+     * @param DatedService[] $dated_services
+     * @return AssociationEntry[]
+     */
+    protected function getAssociationEntriesForMultipleServices(array $dated_services) : array {
         return $this->associationsCollection->find(
-            [
-                '$or' => [['primaryUid' => $uid], ['secondaryUid' => $uid]],
-                'period.from' => ['$lte' => $date->addDays(1)],
-                'period.to' => ['$gte' => $date->addDays(-1)],
-            ]
+            ['$or' => array_map(
+                fn ($dated_service) => $this->getAssociationPredicate($dated_service->service->uid, $dated_service->date)
+                , $dated_services
+            )]
         )
             ->toArray();
     }
@@ -80,16 +91,7 @@ class MongodbServiceRepository extends AbstractServiceRepository {
 
     public function getService(string $uid, Date $date) : ?DatedService {
         $query_results = $this->servicesCollection->find(
-            [
-                '$and' => [
-                    [
-                        'uid' => $uid,
-                        'period.from' => ['$lte' => $date],
-                        'period.to' => ['$gte' => $date],
-                    ],
-                    $this->getShortTermPlanningPredicate(),
-                ]
-            ]
+            $this->getServicePredicate($uid, $date)
             // this will order STP before permanent
             , ['sort' => ['shortTermPlanning.value' => 1, 'shortTermPlanning' => 1]]
         );
@@ -101,6 +103,36 @@ class MongodbServiceRepository extends AbstractServiceRepository {
         }
         return null;
     }
+
+    public function getServices(array $items) : array {
+        if ($items === []) {
+            return [];
+        }
+        $query_results = $this->servicesCollection->find(
+            [
+                '$or' => array_map(
+                    fn($item) => $this->getServicePredicate(...$item)
+                    , array_values($items)
+                ),
+            ]
+            // this will order STP before permanent
+            , ['sort' => ['shortTermPlanning.value' => 1, 'shortTermPlanning' => 1]]
+        );
+        $results = [];
+        /** @var ServiceEntry $entry */
+        foreach ($query_results as $entry) {
+            foreach ($items as [$uid, $date]) {
+                if ($entry->uid === $uid && $entry->runsOnDate($date)) {
+                    $result = new DatedService($entry, $date);
+                    $results[$result->getId()] ??= $result;
+                }
+            }
+        }
+
+        return $results;
+    }
+
+
 
     public function getServiceByRsid(string $rsid, Date $date) : array {
         $predicate = match(strlen($rsid)) {
@@ -252,7 +284,7 @@ class MongodbServiceRepository extends AbstractServiceRepository {
 
         // index possibilities with their UID and date
         $possibilities = array_combine(
-            array_map(static fn(DatedService $dated_service) => $dated_service->service->uid . '_' . $dated_service->date, $possibilities)
+            array_map(static fn(DatedService $dated_service) => $dated_service->getId(), $possibilities)
             , $possibilities
         );
 
@@ -269,8 +301,12 @@ class MongodbServiceRepository extends AbstractServiceRepository {
         );
         /** @var ServiceCallWithDestinationAndCalls[] $results */
         $results = $this->sortCallResults($results);
-        foreach ($results as &$result) {
-            $dated_service = $this->getFullService($possibilities[$result->uid . '_' . $result->date]);
+        $dated_services = $this->getFullServices(array_map(
+            static fn ($result) => $possibilities[$result->uid . '_' . $result->date],
+            $results
+        ));
+        foreach ($results as $i => &$result) {
+            $dated_service = $dated_services[$i];
             $full_results = $dated_service->getCalls($time_type, $crs, $from, $to, true);
             foreach ($full_results as $full_result) {
                 if ($result->timestamp == $full_result->timestamp) {
@@ -282,6 +318,46 @@ class MongodbServiceRepository extends AbstractServiceRepository {
         $board = new DepartureBoard($crs, $from, $to, $time_type, $results);
         $this->cache?->set($cache_key, $board);
         return $board;
+    }
+
+    /**
+     * @param DatedService[] $dated_services
+     * @param bool $include_non_passenger
+     * @return DatedAssociation[][]
+     */
+    public function getAssociationsForMultipleServices(
+        array $dated_services
+        , bool $include_non_passenger
+    ) : array {
+        $entries = $this->getAssociationEntriesForMultipleServices($dated_services);
+
+        /** @var array{0: Association, 1: array{0: string, 1: Date}, 2: array{0: string, 1: Date}}[][]  $associated_services */
+        $applicable_entries = array_map(
+            fn($dated_service) => $this->processAssociationEntries($dated_service, $entries, $include_non_passenger)
+            , $dated_services
+        );
+
+        $associated_services = $this->getServices(
+            array_filter(
+                array_merge(
+                    ...array_map(
+                        static fn($item) => [$item[1], $item[2]]
+                        , array_merge(...$applicable_entries)
+                    )
+                )
+            )
+        );
+
+        /** @var string|int $key */
+        return array_map(
+            fn($dated_service, $key) => array_map(
+                fn($item) => $this->getDatedAssociation($item, $dated_service, $associated_services)
+                , $applicable_entries[$key]
+            )
+            , $dated_services
+            , array_keys($dated_services)
+        );
+
     }
 
     public function getGeneratedDate(): ?Date {
@@ -305,4 +381,25 @@ class MongodbServiceRepository extends AbstractServiceRepository {
 
     private readonly Collection $servicesCollection;
     private readonly Collection $associationsCollection;
+
+    private function getAssociationPredicate(string $uid, Date $date) : array {
+        return [
+            '$or' => [['primaryUid' => $uid], ['secondaryUid' => $uid]],
+            'period.from' => ['$lte' => $date->addDays(1)],
+            'period.to' => ['$gte' => $date->addDays(-1)],
+        ];
+    }
+
+    private function getServicePredicate(string $uid, Date $date) : array {
+        return [
+            '$and' => [
+                [
+                    'uid' => $uid,
+                    'period.from' => ['$lte' => $date],
+                    'period.to' => ['$gte' => $date],
+                ],
+                $this->getShortTermPlanningPredicate(),
+            ]
+        ];
+    }
 }

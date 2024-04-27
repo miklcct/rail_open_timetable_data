@@ -19,6 +19,10 @@ class DatedService implements Persistable {
         , public readonly Date $date
     ) {}
 
+    public function getId() : string {
+        return "{$this->service->uid}_$this->date";
+    }
+
     /**
      * @param TimeType $time_type
      * @param string|null $crs
