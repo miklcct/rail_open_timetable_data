@@ -275,14 +275,19 @@ abstract class AbstractServiceRepository implements ServiceRepositoryInterface {
     ) : array {
         $service = $dated_service->service;
         $departure_date = $dated_service->date;
+        $departure_dates_with_offset = [
+            -1 => $departure_date->addDays(-1),
+            0 => $departure_date,
+            1 => $departure_date->addDays(1),
+        ];
         $uid = $service->uid;
         /** @var array{0: Association, 1: array{0: string, 1: Date}, 2: array{0: string, 1: Date}}[] $to_be_loaded */
         $to_be_loaded = [];
         // process overlay
         $overlaid_associations = [-1 => [], 0 => [], 1 => []];
         foreach ($overlaid_associations as $date_offset => &$associations) {
+            $association_date = $departure_dates_with_offset[$date_offset];
             foreach ($association_entries as $association) {
-                $association_date = $departure_date->addDays($date_offset);
                 if ($association->period->isActive($association_date)) {
                     $found = false;
                     foreach ($associations as &$existing) {
@@ -308,6 +313,7 @@ abstract class AbstractServiceRepository implements ServiceRepositoryInterface {
         unset($associations);
 
         foreach ($overlaid_associations as $date_offset => $associations) {
+            $association_date = $departure_dates_with_offset[$date_offset];
             foreach ($associations as $association) {
                 if (
                     $association instanceof Association
@@ -325,14 +331,13 @@ abstract class AbstractServiceRepository implements ServiceRepositoryInterface {
                     if ($correct_date) {
                         $primary_key = null;
                         $secondary_key = null;
-                        $primary_departure_date = $departure_date->addDays($date_offset);
                         if ($association->secondaryUid === $uid) {
-                            $primary_key = [$association->primaryUid, $primary_departure_date];
+                            $primary_key = [$association->primaryUid, $association_date];
                         } elseif ($association->primaryUid === $uid) {
                             $secondary_departure_date = match ($association->day) {
-                                AssociationDay::YESTERDAY => $departure_date->addDays(-1),
+                                AssociationDay::YESTERDAY => $departure_dates_with_offset[-1],
                                 AssociationDay::TODAY => $departure_date,
-                                AssociationDay::TOMORROW => $departure_date->addDays(1),
+                                AssociationDay::TOMORROW => $departure_dates_with_offset[1],
                             };
                             $secondary_key = [$association->secondaryUid, $secondary_departure_date];
                         }
