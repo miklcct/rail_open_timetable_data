@@ -50,6 +50,9 @@ class MongodbServiceRepository extends AbstractServiceRepository {
      * @return AssociationEntry[]
      */
     protected function getAssociationEntriesForMultipleServices(array $dated_services) : array {
+        if ($dated_services === []) {
+            return [];
+        }
         return $this->associationsCollection->find(
             ['$or' => array_map(
                 fn ($dated_service) => $this->getAssociationPredicate($dated_service->service->uid, $dated_service->date)
