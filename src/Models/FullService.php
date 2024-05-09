@@ -250,6 +250,7 @@ class FullService extends DatedService {
                     , $destinations
                     , $preceding_calls
                     , $subsequent_calls
+                    , $service_call->shortTermPlanning
                 );
             } else {
                 $service_call = new ServiceCallWithDestination(
@@ -263,6 +264,7 @@ class FullService extends DatedService {
                     , $service_call->serviceProperty
                     , $origins
                     , $destinations
+                    , $service_call->shortTermPlanning
                 );
             }
         }

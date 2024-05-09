@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace Miklcct\RailOpenTimetableData\Models;
 
 use DateTimeImmutable;
+use Miklcct\RailOpenTimetableData\Enums\ShortTermPlanning;
 use Miklcct\RailOpenTimetableData\Enums\TimeType;
 use Miklcct\RailOpenTimetableData\Models\Points\TimingPoint;
 use MongoDB\BSON\Persistable;
@@ -22,6 +23,7 @@ class ServiceCall implements Persistable {
         , public readonly Mode $mode
         , public readonly string $toc
         , public readonly ServiceProperty $serviceProperty
+        , public readonly ShortTermPlanning $shortTermPlanning = ShortTermPlanning::PERMANENT
     ) {}
 
     public function isValidConnection(DateTimeImmutable $time, ?string $other_toc = null) : bool {
