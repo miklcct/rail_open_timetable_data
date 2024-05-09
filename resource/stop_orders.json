@@ -30,5 +30,6 @@
         "HOU", "ISL", "SYL", "BFD", "KWB", "CHK", "BNI",
         "BNS", "PUT", "WNT", "CLJ", "QRB", "VXH", "WAT"
     ],
-    ["LWS", "GLY", "BRK", "PLG", "HMD", "EBN", "HMD", "PEV", "NSB", "COB", "CLL", "BEX", "SLQ", "HGS"]
+    ["LWS", "GLY", "BRK", "PLG", "HMD", "EBN", "HMD", "PEV", "NSB", "COB", "CLL", "BEX", "SLQ", "HGS"],
+    ["STP", "WHP", "SAC", "LTN", "LUT", "BDM"]
 ]
