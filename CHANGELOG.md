@@ -2,6 +2,9 @@
 * Add STP into ServiceCall
 * Add St Pancras - Bedford station ordering
 
+## [1.4.1] - 2024-05-07
+* Fix error when there are no services returned
+
 ## [1.4.0] - 2024-04-27
 * Reduce the number of database calls when loading the departure board.
 
