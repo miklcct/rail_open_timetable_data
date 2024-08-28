@@ -430,7 +430,11 @@ class TimetableParser {
     private function getLocation(string $location) : ?Location {
         if (substr($location, 3, 4) === '----') {
             // Z-train
-            $result = $this->locationRepository->getLocationByCrs(substr($location, 0, 3));
+            $crs = substr($location, 0, 3);
+            $result = $this->locationRepository->getLocationByCrs($crs);
+            if ($result === null) {
+                return new TiplocLocationWithCrs($location, $crs, $crs, null);
+            }
             // will not be needed beyond PHP 8.2
             assert($result instanceof Location);
             return $result;
