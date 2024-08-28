@@ -162,6 +162,7 @@ class DepartureBoard {
                             , $destinations
                             , $precedingCalls
                             , $subsequentCalls
+                            , $service_call->shortTermPlanning
                         );
                     }
                     , array_filter(

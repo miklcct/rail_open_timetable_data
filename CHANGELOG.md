@@ -1,3 +1,10 @@
+## [1.5.1] - 2024-08-28
+* Avoid parsing failure when an unknown CRS is encountered in the Z-train file
+
+## [1.5.0] - 2024-05-09
+* Add STP into ServiceCall
+* Add St Pancras - Bedford station ordering
+
 ## [1.4.2] - 2024-08-28
 * Avoid parsing failure when an unknown CRS is encountered in the Z-train file
 

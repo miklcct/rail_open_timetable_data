@@ -58,6 +58,7 @@ class DatedService implements Persistable {
                             , $service->mode
                             , $service->toc
                             , $service->getServicePropertyAtTime($time)
+                            , $service->shortTermPlanning
                         );
                     }
                     , $service->points

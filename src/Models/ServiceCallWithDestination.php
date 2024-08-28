@@ -6,6 +6,7 @@ namespace Miklcct\RailOpenTimetableData\Models;
 use DateTimeImmutable;
 use Miklcct\RailOpenTimetableData\Attributes\ElementType;
 use Miklcct\RailOpenTimetableData\Enums\Mode;
+use Miklcct\RailOpenTimetableData\Enums\ShortTermPlanning;
 use Miklcct\RailOpenTimetableData\Enums\TimeType;
 use Miklcct\RailOpenTimetableData\Models\Points\DestinationPoint;
 use Miklcct\RailOpenTimetableData\Models\Points\OriginPoint;
@@ -26,8 +27,9 @@ class ServiceCallWithDestination extends ServiceCall {
         , ServiceProperty $serviceProperty
         , array $origins
         , array $destinations
+        , ShortTermPlanning $shortTermPlanning = ShortTermPlanning::PERMANENT
     ) {
-        parent::__construct($timestamp, $timeType, $uid, $date, $call, $mode, $toc, $serviceProperty);
+        parent::__construct($timestamp, $timeType, $uid, $date, $call, $mode, $toc, $serviceProperty, $shortTermPlanning);
         $this->origins = $origins;
         $this->destinations = $destinations;
     }
