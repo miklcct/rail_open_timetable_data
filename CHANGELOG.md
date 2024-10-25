@@ -1,3 +1,7 @@
+## [1.5.2] - 2024-10-25
+* Detect night Overground services which run on the repeated hour during autumn
+clock change.
+
 ## [1.5.1] - 2024-08-28
 * Avoid parsing failure when an unknown CRS is encountered in the Z-train file
 

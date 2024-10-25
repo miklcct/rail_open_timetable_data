@@ -6,6 +6,7 @@ namespace Miklcct\RailOpenTimetableData\Models;
 use DateTimeImmutable;
 use DateTimeZone;
 use LogicException;
+use Miklcct\RailOpenTimetableData\Enums\ShortTermPlanning;
 use Miklcct\RailOpenTimetableData\Enums\TimeType;
 use Miklcct\RailOpenTimetableData\Models\Points\TimingPoint;
 use MongoDB\BSON\Persistable;
@@ -74,7 +75,19 @@ class DatedService implements Persistable {
     }
 
     public function getAbsoluteTimeZone() : DateTimeZone {
-        return get_absolute_time_zone($this->date, $this->assertService()->getOrigin()->getWorkingDeparture());
+        $service = $this->assertService();
+        $departure = $service->getOrigin()->getWorkingDeparture();
+        if (
+            $service->toc === 'LO' && $this->service->shortTermPlanning === ShortTermPlanning::NEW
+            && $service->period->from->compare($service->period->to) === 0
+            && $service->period->from->month === 10
+            && $service->period->from->day >= 25
+            && $service->period->weekdays[0]
+            && $departure->hours === 1
+        ) {
+            return new DateTimeZone("UTC");
+        }
+        return get_absolute_time_zone($this->date, $departure);
     }
 
     private function assertService() : Service {
