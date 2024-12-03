@@ -1,3 +1,6 @@
+## [1.5.3] - 2024-12-03
+* Avoid parsing failure when an unknown CRS is encountered in the fixed link file
+
 ## [1.5.2] - 2024-10-25
 * Detect night Overground services which run on the repeated hour during autumn
 clock change.

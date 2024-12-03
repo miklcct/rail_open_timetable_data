@@ -6,8 +6,9 @@ namespace Miklcct\RailOpenTimetableData\Parsers;
 use LogicException;
 use Miklcct\RailOpenTimetableData\Models\Date;
 use Miklcct\RailOpenTimetableData\Models\FixedLink;
-use Miklcct\RailOpenTimetableData\Models\Station;
+use Miklcct\RailOpenTimetableData\Models\LocationWithCrs;
 use Miklcct\RailOpenTimetableData\Models\Time;
+use Miklcct\RailOpenTimetableData\Models\TiplocLocationWithCrs;
 use Miklcct\RailOpenTimetableData\Repositories\FixedLinkRepositoryInterface;
 use Miklcct\RailOpenTimetableData\Repositories\LocationRepositoryInterface;
 use DateTimeImmutable;
@@ -49,14 +50,16 @@ class FixedLinkParser {
                     break;
                 case 'O':
                     $origin = $this->locationRepository->getLocationByCrs($fields[1]);
-                    if (!$origin instanceof Station) {
-                        throw new LogicException('Fixed links must start and end with a station.');
+                    if (!$origin instanceof LocationWithCrs) {
+                        fwrite(STDERR, "Unknown CRS $fields[1] in fixed link\n");
+                        $origin = new TiplocLocationWithCrs("$fields[1]----", $fields[1], $fields[1], null);
                     }
                     break;
                 case 'D':
                     $destination = $this->locationRepository->getLocationByCrs($fields[1]);
-                    if (!$destination instanceof Station) {
-                        throw new LogicException('Fixed links must start and end with a station.');
+                    if (!$destination instanceof LocationWithCrs) {
+                        fwrite(STDERR, "Unknown CRS $fields[1] in fixed link\n");
+                        $destination = new TiplocLocationWithCrs("$fields[1]----", $fields[1], $fields[1], null);
                     }
 
                     break;

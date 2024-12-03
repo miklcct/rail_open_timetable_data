@@ -433,6 +433,7 @@ class TimetableParser {
             $crs = substr($location, 0, 3);
             $result = $this->locationRepository->getLocationByCrs($crs);
             if ($result === null) {
+                fwrite(STDERR, "Unknown CRS $crs referred in Z-train\n");
                 return new TiplocLocationWithCrs($location, $crs, $crs, null);
             }
             // will not be needed beyond PHP 8.2

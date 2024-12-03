@@ -13,8 +13,8 @@ class FixedLink implements Persistable {
 
     public function __construct(
         public readonly string $mode
-        , public readonly Station $origin
-        , public readonly Station $destination
+        , public readonly LocationWithCrs $origin
+        , public readonly LocationWithCrs $destination
         , public readonly int $transferTime
         , public readonly Time $startTime
         , public readonly Time $endTime
