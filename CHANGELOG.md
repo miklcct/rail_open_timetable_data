@@ -1,3 +1,6 @@
+## [1.6.0] - 2025-11-11
+* Add the ability to filter services by TOC
+
 ## [1.5.3] - 2024-12-03
 * Avoid parsing failure when an unknown CRS is encountered in the fixed link file
 
