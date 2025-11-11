@@ -38,6 +38,7 @@ interface ServiceRepositoryInterface {
         , DateTimeImmutable $from
         , DateTimeImmutable $to
         , TimeType $time_type
+        , ?array $toc = null
     ) : DepartureBoard;
 
     /**

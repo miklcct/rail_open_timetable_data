@@ -61,7 +61,8 @@ class MemoryServiceRepository extends AbstractServiceRepository {
         string $crs,
         DateTimeImmutable $from,
         DateTimeImmutable $to,
-        TimeType $time_type
+        TimeType $time_type,
+        ?array $toc = null
     ) : DepartureBoard {
         $results = [];
         foreach (array_keys($this->services) as $uid) {
@@ -70,16 +71,19 @@ class MemoryServiceRepository extends AbstractServiceRepository {
             for ($date = $from_date; $date->compare($to_date) <= 0; $date = $date->addDays(1)) {
                 $dated_service = $this->getService($uid, $date);
                 if ($dated_service?->service instanceof Service) {
-                    /** @noinspection NullPointerExceptionInspection it's not possible to be null due to if condition */
-                    $full_service = $this->getFullService($dated_service);
-                    $results[] = array_values(
-                        array_filter(
-                            $full_service->getCalls($time_type, $crs, $from, $to, true)
-                            // prevent repeated calls from different portion
-                            , static fn(ServiceCallWithDestination $result) =>
-                                $result->uid === $full_service->service->uid
-                        )
-                    );
+                    if ($toc === null || in_array($dated_service->service->toc, $toc)) {
+                        /** @noinspection NullPointerExceptionInspection it's not possible to be null due to if condition */
+                        $full_service = $this->getFullService($dated_service);
+                        $results[] = array_values(
+                            array_filter(
+                                $full_service->getCalls($time_type, $crs, $from, $to, true)
+                                // prevent repeated calls from different portion
+                                ,
+                                static fn(ServiceCallWithDestination $result) => $result->uid
+                                === $full_service->service->uid
+                            )
+                        );
+                    }
                 }
             }
         }

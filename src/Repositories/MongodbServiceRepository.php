@@ -173,9 +173,11 @@ class MongodbServiceRepository extends AbstractServiceRepository {
         string $crs,
         DateTimeImmutable $from,
         DateTimeImmutable $to,
-        TimeType $time_type
+        TimeType $time_type,
+        ?array $toc = null
     ) : DepartureBoard {
-        $cache_key = sprintf('board_%s_%s_%012d_%012d_%s_%d', $this->getGeneratedDate(), $crs, $from->getTimestamp(), $to->getTimestamp(), $time_type->value, $this->permanentOnly);
+        $cache_key = sprintf('board_%s_%s_%012d_%012d_%s_%d%s', $this->getGeneratedDate(), $crs, $from->getTimestamp(), $to->getTimestamp(), $time_type->value, $this->permanentOnly, $toc === null ? "" : "_" . implode("", $toc)
+        );
         $cache_entry = $this->cache?->get($cache_key);
         if ($cache_entry !== null) {
             return $cache_entry;
@@ -202,7 +204,8 @@ class MongodbServiceRepository extends AbstractServiceRepository {
                         ],
                         'period.from' => ['$lte' => $to_date],
                         'period.to' => ['$gte' => $from_date],
-                    ],
+                        
+                    ] + ($toc === null ? [] : ['toc' => ['$in' => $toc]]),
                     $this->getShortTermPlanningPredicate(),
                 ]
             ]
