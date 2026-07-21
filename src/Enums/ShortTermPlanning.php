@@ -17,4 +17,13 @@ enum ShortTermPlanning : string {
             self::CANCEL => 'STP cancellation',
         };
     }
+    
+    public function getAbbreviation() : string {
+        return match ($this) {
+            self::PERMANENT => '',
+            self::NEW => 'STP',
+            self::OVERLAY => 'VAR',
+            self::CANCEL => 'CAN',
+        };
+    }
 }

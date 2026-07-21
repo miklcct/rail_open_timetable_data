@@ -7,21 +7,21 @@ use Miklcct\RailOpenTimetableData\Models\BsonSerializeTrait;
 use Miklcct\RailOpenTimetableData\Models\Location;
 use Miklcct\RailOpenTimetableData\Models\Time;
 
-class DestinationPoint extends TimingPoint implements HasArrival {
-    use BsonSerializeTrait;
+readonly class DestinationPoint extends TimingPoint implements HasArrival {
     use ArrivalTrait;
+    use BsonSerializeTrait;
 
     public function __construct(
-        Location $location
-        , string $locationSuffix
-        , string $platform
-        , public readonly string $path
-        , Time $workingArrival
-        , ?Time $publicArrival
-        , array $activity
+        ?Location $location,
+        ?int $locationSuffix,
+        ?string $platform,
+        public ?string $path,
+        Time $workingArrival,
+        ?Time $publicArrival,
+        array $activities
     ) {
         $this->publicArrival = $publicArrival;
         $this->workingArrival = $workingArrival;
-        parent::__construct($location, $locationSuffix, $platform, $activity);
+        parent::__construct($location, $locationSuffix, $platform, $activities);
     }
 }

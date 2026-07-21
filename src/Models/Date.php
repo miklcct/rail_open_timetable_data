@@ -12,11 +12,11 @@ use MongoDB\BSON\Persistable;
 use MongoDB\BSON\UTCDateTime;
 use UnexpectedValueException;
 
-class Date implements JsonSerializable, Persistable {
+readonly class Date implements JsonSerializable, Persistable {
     final public function __construct(
-        public readonly int $year
-        , public readonly int $month
-        , public readonly int $day
+        public int $year
+        , public int $month
+        , public int $day
     ) {
         $this->validateDate();
     }
@@ -60,13 +60,13 @@ class Date implements JsonSerializable, Persistable {
         return (int)$this->toDateTimeImmutable()->format('w');
     }
 
-    public function toDateTimeImmutable(Time $time = null, ?DateTimeZone $timezone = null) : DateTimeImmutable {
+    public function toDateTimeImmutable(?Time $time = null, ?DateTimeZone $timezone = null) : DateTimeImmutable {
         if ($timezone === null) {
             $timezone = new DateTimeZone('Europe/London');
         }
-        return (new DateTimeImmutable('now', $timezone))
+        return new DateTimeImmutable('now', $timezone)
             ->setDate($this->year, $this->month, $this->day)
-            ->setTime($time?->hours ?? 0, $time?->minutes ?? 0, $time?->halfMinute ? 30 : 0);
+            ->setTime($time?->hours ?? 0, $time?->minutes ?? 0, $time?->seconds ?? 0);
     }
 
     public static function fromDateTimeInterface(DateTimeInterface $datetime) : static {

@@ -7,7 +7,7 @@ use MongoDB\Collection;
 use Miklcct\RailOpenTimetableData\Models\FixedLink;
 use MongoDB\Database;
 
-class MongodbFixedLinkRepository implements FixedLinkRepositoryInterface {
+readonly class MongodbFixedLinkRepository implements FixedLinkRepositoryInterface {
     public function __construct(Database $database) {
         $this->collection = $database->selectCollection('fixed_links');
     }
@@ -44,5 +44,5 @@ class MongodbFixedLinkRepository implements FixedLinkRepositoryInterface {
         );
     }
 
-    private readonly Collection $collection;
+    private Collection $collection;
 }

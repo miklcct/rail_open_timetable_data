@@ -13,8 +13,8 @@ class FixedLink implements Persistable {
 
     public function __construct(
         public readonly string $mode
-        , public readonly LocationWithCrs $origin
-        , public readonly LocationWithCrs $destination
+        , public readonly Location $origin
+        , public readonly Location $destination
         , public readonly int $transferTime
         , public readonly Time $startTime
         , public readonly Time $endTime
@@ -28,8 +28,7 @@ class FixedLink implements Persistable {
 
     /**
      * Get the fixed link arrival time given a departure time
-     * 
-     * @param DateTimeImmutable $departure
+     *
      * @param bool $reverse If true get the departure time from the arrival time instead
      */
     public function getArrivalTime(DateTimeImmutable $departure, bool $reverse = false) : ?DateTimeImmutable {
@@ -45,7 +44,7 @@ class FixedLink implements Persistable {
             return $reverse ? $departure : $departure->add($transfer_interval);
         }
         if ($reverse) {
-            if ($date_valid && $time->toHalfMinutes() > $this->startTime->toHalfMinutes()) {
+            if ($date_valid && $time->secondsFromOrigin > $this->startTime->secondsFromOrigin) {
                 $next_time = $departure->setTime($this->endTime->hours, $this->endTime->minutes);
             } elseif ($this->startDate !== null && $departure < $this->startDate->toDateTimeImmutable()) {
                 $next_time = null;
@@ -58,9 +57,9 @@ class FixedLink implements Persistable {
             return null;
         }
 
-        if ($date_valid && $time->toHalfMinutes() < $this->startTime->toHalfMinutes()) {
+        if ($date_valid && $time->secondsFromOrigin < $this->startTime->secondsFromOrigin) {
             $next_time = $departure->setTime($this->startTime->hours, $this->startTime->minutes);
-        } elseif ($this->endDate !== null && $departure > $this->endDate->toDateTimeImmutable(new Time(23, 59, true))) {
+        } elseif ($this->endDate !== null && $departure > $this->endDate->toDateTimeImmutable(new Time(23, 59, 59))) {
             $next_time = null;
         } else {
             $next_time = $departure->add(new DateInterval('P1D'))->setTime(0, 0);
@@ -77,13 +76,13 @@ class FixedLink implements Persistable {
                 || $this->startDate->toDateTimeImmutable(new Time(0, 0))
                 <= $date->toDateTimeImmutable())
         && (!($this->endDate !== null)
-                || $this->endDate->toDateTimeImmutable(new Time(23, 59, true))
+                || $this->endDate->toDateTimeImmutable(new Time(23, 59, 59))
                 >= $date->toDateTimeImmutable());
     }
 
     public function isActiveAtTime(Time $time) : bool {
-        return $this->startTime->toHalfMinutes() <= $time->toHalfMinutes()
-            && $this->endTime->toHalfMinutes() >= $time->toHalfMinutes();
+        return $this->startTime->secondsFromOrigin <= $time->secondsFromOrigin
+            && $this->endTime->secondsFromOrigin >= $time->secondsFromOrigin;
     }
 
     /** @var bool[] 7 bits specifying if it is active on each of the weekdays */

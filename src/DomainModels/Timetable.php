@@ -1,10 +1,11 @@
 <?php
 declare(strict_types=1);
 
-namespace Miklcct\RailOpenTimetableData\Models;
+namespace Miklcct\RailOpenTimetableData\DomainModels;
 
 use Miklcct\RailOpenTimetableData\Exceptions\UnreachableException;
-use Miklcct\RailOpenTimetableData\Repositories\LocationRepositoryInterface;
+use Miklcct\RailOpenTimetableData\Models\Location;
+use Miklcct\RailOpenTimetableData\Models\ServiceCall;
 use function array_filter;
 use function array_reverse;
 use function count;
@@ -12,10 +13,10 @@ use function Safe\json_decode as json_decode;
 
 class Timetable {
     // this number must be greater than the maximum number of calls for a train
-    private const MULTIPLIER = 1000;
+    private const int MULTIPLIER = 1000;
 
     /**
-     * @param LocationWithCrs[] $stations
+     * @param Location[] $stations
      * @param ServiceCall[][] $calls
      */
     public function __construct(
@@ -27,60 +28,56 @@ class Timetable {
     public static function generateFromBoard(DepartureBoard $board) : static {
         $calls = $board->calls;
         // try to order the stations
-        /** @var LocationWithCrs[] $stations */
+        /** @var Location[] $stations */
         $stations = [];
         // I hope this is good enough - I don't know how to sort the stations properly
         $arrival_mode = $board->timeType->isArrival();
+        $public_mode = $board->timeType->isPublic();
         usort(
             $calls
             , static fn(
-                ServiceCallWithDestinationAndCalls $a
-                , ServiceCallWithDestinationAndCalls $b
-            ) => -(
-                count($arrival_mode ? $a->precedingCalls : $a->subsequentCalls)
-                <=> count($arrival_mode ? $b->precedingCalls : $b->subsequentCalls)
-            )
+            ServiceCall $a
+            , ServiceCall $b
+        ) => -(
+            count($arrival_mode ? $a->getPrecedingCalls($public_mode) : $a->getSubsequentCalls($public_mode))
+            <=> count($arrival_mode ? $b->getPrecedingCalls($public_mode) : $b->getSubsequentCalls($public_mode))
+        )
         );
         $common_check = true;
         while (array_filter($calls) !== []) {
             $initial_count = count(array_filter($calls));
             foreach ($calls as &$call) {
                 if ($call !== null) {
-                    $destinations = $arrival_mode ? $call->origins : $call->destinations;
-                    $portions_remaining = count($destinations);
-                    foreach (array_keys($destinations) as $portion) {
+                    $portions = $arrival_mode ? $call->service->getOriginPortions() : $call->service->getDestinationPortions();
+                    $portions_remaining = count($portions);
+                    foreach (array_keys($portions) as $portion) {
                         $order = [];
                         $i = $arrival_mode ? count($stations) - 1 : 0;
                         $found_one = false;
-                        foreach ($arrival_mode ? array_reverse($call->precedingCalls) : $call->subsequentCalls as $subsequent_call) {
+                        foreach ($arrival_mode ? array_reverse($call->getPrecedingCalls($public_mode)) : $call->getSubsequentCalls($public_mode) as $subsequent_call) {
                             if (
                                 array_key_exists(
                                     $portion,
-                                    $arrival_mode ? $subsequent_call->origins : $subsequent_call->destinations
+                                    $arrival_mode ? $subsequent_call->service->getOriginPortions() : $subsequent_call->service->getDestinationPortions()
                                 )
                             ) {
-                                $current_station = $subsequent_call->call->location;
-                                if (
-                                    $current_station instanceof LocationWithCrs
-                                    && $current_station->getCrsCode()
-                                    !== null
-                                ) {
-                                    $found = null;
-                                    $old_i = $i;
-                                    while (isset($stations[$i])) {
-                                        if ($stations[$i]->getCrsCode() === $current_station->getCrsCode()) {
-                                            $found = $i;
-                                            $i += $arrival_mode ? -1 : 1;
-                                            $found_one = true;
-                                            break;
-                                        }
+                                $timingPoint2 = $subsequent_call->timingPoint;
+                                $current_station = $timingPoint2->location;
+                                $found = null;
+                                $old_i = $i;
+                                while (isset($stations[$i])) {
+                                    if ($stations[$i]->getCrsOrTiplocCode() === $current_station->getCrsOrTiplocCode()) {
+                                        $found = $i;
                                         $i += $arrival_mode ? -1 : 1;
+                                        $found_one = true;
+                                        break;
                                     }
-                                    if ($found === null) {
-                                        $i = $old_i;
-                                    }
-                                    $order[] = [$current_station, $found === null ? null : $found * self::MULTIPLIER];
+                                    $i += $arrival_mode ? -1 : 1;
                                 }
+                                if ($found === null) {
+                                    $i = $old_i;
+                                }
+                                $order[] = [$current_station, $found === null ? null : $found * self::MULTIPLIER];
                             }
                         }
                         if ($common_check && !$found_one && $stations !== []) {
@@ -99,9 +96,9 @@ class Timetable {
                                     foreach ($order as $item) {
                                         $index = $start_index;
                                         while (isset($list_direction[$index])) {
-                                            /** @var LocationWithCrs $station */
+                                            /** @var Location $station */
                                             $station = $item[0];
-                                            if ($list_direction[$index] === $station->getCrsCode()) {
+                                            if ($list_direction[$index] === $station->getCrsOrTiplocCode()) {
                                                 ++$count;
                                                 $start_index = $index + 1;
                                                 break;
@@ -111,19 +108,11 @@ class Timetable {
                                     }
                                     if ($count > $max_count) {
                                         $stations = array_map(
-                                            static fn(string $crs) => new class($crs) implements LocationWithCrs {
-                                                public function __construct(public readonly string $crsCode) {}
+                                            static fn(string $crs) => new readonly class($crs) {
+                                                public function __construct(public string $crsCode) {}
 
-                                                public function getCrsCode() : string {
+                                                public function getCrsOrTiplocCode() : string {
                                                     return $this->crsCode;
-                                                }
-
-                                                public function promoteToStation(LocationRepositoryInterface $location_repository) : ?Station {
-                                                    $station = $location_repository->getLocationByCrs($this->getCrsCode());
-                                                    if (!$station instanceof Station) {
-                                                        return null;
-                                                    }
-                                                    return $station;
                                                 }
                                             }
                                             , $list_direction
@@ -184,12 +173,13 @@ class Timetable {
                 $common_check = false;
             }
         }
-        /** @var LocationWithCrs[] $stations */
-        $stations = array_merge([$board->calls[0]->call->location], $stations);
+        /** @var Location[] $stations */
+        $timingPoint1 = $board->calls[0]->timingPoint;
+        $stations = array_merge([$timingPoint1->location], $stations);
         foreach ($stations as &$station) {
             if (!$station instanceof Location) {
                 foreach ($stations as $find_station) {
-                    if ($find_station instanceof Location && $find_station->getCrsCode() === $station->getCrsCode()) {
+                    if ($find_station instanceof Location && $find_station->getCrsOrTiplocCode() === $station->getCrsOrTiplocCode()) {
                         $station = $find_station;
                     }
                 }
@@ -202,14 +192,15 @@ class Timetable {
         // fill the calls matrix
         $i = 0;
         foreach ($board->calls as $call) {
-            foreach (array_keys($arrival_mode ? $call->origins : $call->destinations) as $portion) {
+            foreach (array_keys($arrival_mode ? $call->service->getOriginPortions() : $call->service->getDestinationPortions()) as $portion) {
                 $matrix[0][$i] = $call;
                 $j = 1;
-                foreach ($arrival_mode ? $call->precedingCalls : $call->subsequentCalls as $subsequent_call) {
-                    $location = $subsequent_call->call->location;
-                    if ($location instanceof LocationWithCrs && array_key_exists($portion, $arrival_mode ? $subsequent_call->origins : $subsequent_call->destinations)) {
-                        $subsequent_crs = $location->getCrsCode();
-                        while ($stations[$j]->getCrsCode() !== $subsequent_crs) {
+                foreach ($arrival_mode ? $call->getPrecedingCalls($public_mode) : $call->getSubsequentCalls($public_mode) as $subsequent_call) {
+                    $timingPoint = $subsequent_call->timingPoint;
+                    $location = $timingPoint->location;
+                    if (array_key_exists($portion, $arrival_mode ? $subsequent_call->service->getOriginPortions() : $subsequent_call->service->getDestinationPortions())) {
+                        $subsequent_crs = $location->getCrsOrTiplocCode();
+                        while ($stations[$j]->getCrsOrTiplocCode() !== $subsequent_crs) {
                             ++$j;
                             if (!isset($stations[$j])) {
                                 throw new UnreachableException();
@@ -237,7 +228,7 @@ class Timetable {
             $removed_duplication = false;
             for ($i = $arrival_mode ? 1 : count($stations) - 1; $arrival_mode ? $i <= count($stations) - 1 : $i >= 1; $i += $arrival_mode ? 1 : -1) {
                 for ($j = $i + ($arrival_mode ? 1 : - 1); $arrival_mode ? $j <= count($stations) - 1 : $j >= 1; $j += $arrival_mode ? 1 : -1) {
-                    if ($stations[$i]->getCrsCode() === $stations[$j]->getCrsCode()) {
+                    if ($stations[$i]->getCrsOrTiplocCode() === $stations[$j]->getCrsOrTiplocCode()) {
                         $failed = false;
                         foreach (array_keys($matrix[0]) as $column) {
                             if (isset($matrix[$j][$column])) {

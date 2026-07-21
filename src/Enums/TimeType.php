@@ -17,4 +17,18 @@ enum TimeType : string {
     public function isDeparture() : bool {
         return $this === self::PUBLIC_DEPARTURE || $this === self::WORKING_DEPARTURE;
     }
+
+    public function isPublic() : bool {
+        return $this === self::PUBLIC_ARRIVAL || $this === self::PUBLIC_DEPARTURE;
+    }
+    
+    public function getCompanion() : self {
+        return match ($this) {
+            self::WORKING_ARRIVAL => self::WORKING_DEPARTURE,
+            self::PUBLIC_ARRIVAL => self::PUBLIC_DEPARTURE,
+            self::WORKING_DEPARTURE => self::WORKING_ARRIVAL,
+            self::PUBLIC_DEPARTURE => self::PUBLIC_ARRIVAL,
+            self::PASS => self::PASS,
+        };
+    }
 }

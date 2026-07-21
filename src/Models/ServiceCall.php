@@ -3,38 +3,103 @@ declare(strict_types=1);
 
 namespace Miklcct\RailOpenTimetableData\Models;
 
-use DateTimeImmutable;
-use Miklcct\RailOpenTimetableData\Enums\ShortTermPlanning;
-use Miklcct\RailOpenTimetableData\Enums\TimeType;
-use Miklcct\RailOpenTimetableData\Models\Points\TimingPoint;
-use MongoDB\BSON\Persistable;
 use DateInterval;
-use Miklcct\RailOpenTimetableData\Enums\Mode;
+use DateTimeImmutable;
+use Miklcct\RailOpenTimetableData\DomainModels\Service;
+use Miklcct\RailOpenTimetableData\Enums\TimeType;
+use Miklcct\RailOpenTimetableData\Models\Points\HasArrival;
+use Miklcct\RailOpenTimetableData\Models\Points\HasDeparture;
+use Miklcct\RailOpenTimetableData\Models\Points\TimingPoint;
 
-class ServiceCall implements Persistable {
-    use BsonSerializeTrait;
-
+readonly class ServiceCall {
     public function __construct(
-        public readonly DateTimeImmutable $timestamp
-        , public readonly TimeType $timeType
-        , public readonly string $uid
-        , public readonly Date $date
-        , public readonly TimingPoint $call
-        , public readonly Mode $mode
-        , public readonly string $toc
-        , public readonly ServiceProperty $serviceProperty
-        , public readonly ShortTermPlanning $shortTermPlanning = ShortTermPlanning::PERMANENT
-    ) {}
+        public Service $service, public int $callIndex
+    ) {
+        $this->timingPoint = $service->timingPoints[$this->callIndex];
+    }
 
-    public function isValidConnection(DateTimeImmutable $time, ?string $other_toc = null) : bool {
-        $station = $this->call->location;
+    public TimingPoint $timingPoint;
+
+    /**
+     * @return self[]
+     */
+    public function getPrecedingCalls(bool $public_only) : array {
+        $filter = fn(TimingPoint $item) => $item instanceof HasDeparture && (!$public_only || $item->getPublicDeparture() !== null);
+        $calls_of_this_portion = array_map(
+            fn(int $key) => new self($this->service, $key)
+            , array_filter(array_keys(array_filter($this->service->timingPoints, $filter)), fn(int $item) => $item < $this->callIndex)
+        );
+        $calls_from_divided_from = $this->service->divideFrom
+            ? array_map(
+                fn($key) => new self($this->service->divideFrom, $key)
+                , array_keys(array_filter($this->service->divideFrom->timingPoints, $filter))
+            )
+            : [];
+        $calls_from_joined_portions = array_map(
+            fn(Service $portion) => array_map(
+                fn(int $key) => new self($portion, $key)
+                , array_keys(array_filter($portion->timingPoints, $filter))
+            )
+            , $this->service->joins
+        );
+        return array_merge(array_merge($calls_from_divided_from, ...$calls_from_joined_portions), $calls_of_this_portion);
+    }
+
+    /**
+     * @return self[]
+     */
+    public function getSubsequentCalls(bool $public_only) : array {
+        $filter = fn(TimingPoint $item) => $item instanceof HasArrival && (!$public_only || $item->getPublicArrival() !== null);
+        $calls_of_this_portion = array_map(
+            fn(int $key) => new self($this->service, $key)
+            , array_filter(
+                array_keys(
+                    array_filter($this->service->timingPoints, $filter),
+                )
+                , fn(int $item) => $item > $this->callIndex
+            )
+        );
+        $calls_from_joined_to = $this->service->joinTo
+            ? array_map(
+                fn($key) => new self($this->service->joinTo, $key)
+                , array_keys(array_filter($this->service->joinTo->timingPoints, $filter))
+            )
+            : [];
+        $calls_from_divided_portions = array_map(
+            fn(Service $portion) => array_map(
+                fn(int $key) => new self($portion, $key)
+                , array_keys(array_filter($portion->timingPoints, $filter))
+            )
+            , $this->service->divides
+        );
+        return array_merge(
+            array_merge(
+                $calls_of_this_portion
+                , ...$calls_from_divided_portions
+            )
+            , $calls_from_joined_to
+        );
+    }
+
+    public function getTimestamp(TimeType $time_type) : ?DateTimeImmutable {
+        $time = $this->timingPoint->getTime($time_type);
+        if ($time === null) {
+            return null;
+        }
+        return $this->service->date->toDateTimeImmutable($time, $this->service->getAbsoluteTimeZone());
+    }
+
+    public function isValidConnection(TimeType $time_type, DateTimeImmutable $time, ?string $other_toc) : bool {
+        $station = $this->timingPoint->location;
         if (!$station instanceof Station) {
             return false;
         }
-        return match ($this->timeType) {
-            TimeType::PUBLIC_DEPARTURE => $this->timestamp >= $time->add(new DateInterval(sprintf('PT%dM', $station->getConnectionTime($other_toc, $this->toc)))),
-            TimeType::PUBLIC_ARRIVAL => $time >= $this->timestamp->add(new DateInterval(sprintf('PT%dM', $station->getConnectionTime($this->toc, $other_toc)))),
+        $timestamp = $this->getTimestamp($time_type);
+        return match ($time_type) {
+            TimeType::PUBLIC_DEPARTURE => $timestamp >= $time->add(new DateInterval(sprintf('PT%dM', $station->getConnectionTime($other_toc, $this->service->toc)))),
+            TimeType::PUBLIC_ARRIVAL => $time >= $timestamp->add(new DateInterval(sprintf('PT%dM', $station->getConnectionTime($this->service->toc, $other_toc)))),
             default => false,
         };
+
     }
 }

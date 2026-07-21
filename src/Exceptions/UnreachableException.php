@@ -6,7 +6,7 @@ namespace Miklcct\RailOpenTimetableData\Exceptions;
 use RuntimeException;
 
 class UnreachableException extends RuntimeException {
-    public function __construct() {
-        parent::__construct('This should not happen.');
+    public function __construct(string $message = 'This should not happen.') {
+        parent::__construct($message);
     }
 }

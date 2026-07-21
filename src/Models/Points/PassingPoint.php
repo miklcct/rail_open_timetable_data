@@ -8,35 +8,36 @@ use Miklcct\RailOpenTimetableData\Models\Location;
 use Miklcct\RailOpenTimetableData\Models\ServiceProperty;
 use Miklcct\RailOpenTimetableData\Models\Time;
 
-class PassingPoint extends IntermediatePoint {
+readonly class PassingPoint extends IntermediatePoint {
     use BsonSerializeTrait;
 
     public function __construct(
-        Location $location
-        , string $locationSuffix
-        , string $platform
-        , string $path
-        , string $line
-        , public readonly Time $pass
-        , int $allowanceHalfMinutes
-        , array $activity
-        , ?ServiceProperty $serviceProperty
+        Location $location,
+        ?int $locationSuffix,
+        ?string $platform,
+        ?string $path,
+        ?string $line,
+        public Time $pass,
+        Time $engineeringAllowance,
+        Time $pathingAllowance,
+        Time $performanceAllowance,
+        array $activities,
+        ServiceProperty $serviceProperty
     ) {
         parent::__construct(
-            $location
-            , $locationSuffix
-            , $platform
-            , $path
-            , $line
-            , $allowanceHalfMinutes
-            , $activity
-            , $serviceProperty
+            $location,
+            $locationSuffix,
+            $platform,
+            $path,
+            $line,
+            $engineeringAllowance,
+            $pathingAllowance,
+            $performanceAllowance,
+            $activities,
+            $serviceProperty
         );
     }
 
-    /**
-     * @return Time
-     */
     public function getPass() : Time {
         return $this->pass;
     }

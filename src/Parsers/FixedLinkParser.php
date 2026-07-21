@@ -3,23 +3,20 @@ declare(strict_types=1);
 
 namespace Miklcct\RailOpenTimetableData\Parsers;
 
-use LogicException;
+use DateTimeImmutable;
 use Miklcct\RailOpenTimetableData\Models\Date;
 use Miklcct\RailOpenTimetableData\Models\FixedLink;
-use Miklcct\RailOpenTimetableData\Models\LocationWithCrs;
 use Miklcct\RailOpenTimetableData\Models\Time;
-use Miklcct\RailOpenTimetableData\Models\TiplocLocationWithCrs;
+use Miklcct\RailOpenTimetableData\Models\Tiploc;
 use Miklcct\RailOpenTimetableData\Repositories\FixedLinkRepositoryInterface;
 use Miklcct\RailOpenTimetableData\Repositories\LocationRepositoryInterface;
-use DateTimeImmutable;
 use function explode;
 use function fgetcsv;
 
-class FixedLinkParser {
+readonly class FixedLinkParser {
     public function __construct(
-        private readonly Helper $helper
-        , private readonly LocationRepositoryInterface $locationRepository
-        , private readonly FixedLinkRepositoryInterface $fixedLinkRepository
+        private LocationRepositoryInterface $locationRepository
+        , private FixedLinkRepositoryInterface $fixedLinkRepository
     ) {
     }
 
@@ -50,16 +47,16 @@ class FixedLinkParser {
                     break;
                 case 'O':
                     $origin = $this->locationRepository->getLocationByCrs($fields[1]);
-                    if (!$origin instanceof LocationWithCrs) {
+                    if ($origin === null) {
                         fwrite(STDERR, "Unknown CRS $fields[1] in fixed link\n");
-                        $origin = new TiplocLocationWithCrs("$fields[1]----", $fields[1], $fields[1], null);
+                        $origin = new Tiploc("$fields[1]----", $fields[1], $fields[1], null);
                     }
                     break;
                 case 'D':
                     $destination = $this->locationRepository->getLocationByCrs($fields[1]);
-                    if (!$destination instanceof LocationWithCrs) {
+                    if ($destination === null) {
                         fwrite(STDERR, "Unknown CRS $fields[1] in fixed link\n");
-                        $destination = new TiplocLocationWithCrs("$fields[1]----", $fields[1], $fields[1], null);
+                        $destination = new Tiploc("$fields[1]----", $fields[1], $fields[1], null);
                     }
 
                     break;
@@ -92,7 +89,7 @@ class FixedLinkParser {
                     );
                     break;
                 case 'R':
-                    $weekdays = $this->helper->parseWeekdays($fields[1]);
+                    $weekdays = parse_weekdays($fields[1]);
                     break;
                 }
             }

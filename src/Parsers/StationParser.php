@@ -12,10 +12,9 @@ use function fgets;
 use function Miklcct\RailOpenTimetableData\get_full_station_name;
 use function str_starts_with;
 
-class StationParser {
+readonly class StationParser {
     public function __construct(
-        private readonly Helper $helper
-        , private readonly LocationRepositoryInterface $locationRepository
+        private LocationRepositoryInterface $locationRepository
     ) {
     }
 
@@ -49,9 +48,7 @@ class StationParser {
             str_starts_with($line, 'A');
             $line = fgets($msn_file)
         ) {
-            $columns = $this->helper->parseLine(
-                $line, [1, 4, 26, 4, 1, 7, 3, 3, 3, 5, 1, 5, 2, 1, 1, 11, 3]
-            );
+            $columns = parse_line($line, [1, 4, 26, 4, 1, 7, 3, 3, 3, 5, 1, 5, 2, 1, 1, 11, 3]);
             $stations[] = new Station(
                 tiploc: $columns[5]
                 , crsCode: $columns[8]
@@ -77,7 +74,7 @@ class StationParser {
         $aliases = [];
         // parse aliases
         while (str_starts_with($line, 'L')) {
-            $columns = $this->helper->parseLine($line, [1, 4, 26, 5, 26, 20]);
+            $columns = parse_line($line, [1, 4, 26, 5, 26, 20]);
             $aliases[get_full_station_name($columns[4])] = get_full_station_name($columns[2]);
             $line = fgets($msn_file);
         }

@@ -8,19 +8,19 @@ use Miklcct\RailOpenTimetableData\Enums\Activity;
 use Miklcct\RailOpenTimetableData\Enums\TimeType;
 use Miklcct\RailOpenTimetableData\Models\BsonSerializeTrait;
 use Miklcct\RailOpenTimetableData\Models\Location;
-use Miklcct\RailOpenTimetableData\Models\LocationWithCrs;
 use Miklcct\RailOpenTimetableData\Models\Time;
-use Miklcct\RailOpenTimetableData\Models\TiplocLocation;
+use Miklcct\RailOpenTimetableData\Models\Tiploc;
 use MongoDB\BSON\Persistable;
 
-abstract class TimingPoint implements Persistable {
+readonly abstract class TimingPoint implements Persistable {
     use BsonSerializeTrait;
 
     public function __construct(
-        public readonly Location $location
-        , public readonly string $locationSuffix
-        , public readonly string $platform
-        , array $activities
+        public Location $location,
+        public ?int $locationSuffix,
+        public ?string $platform,
+        /** @var Activity[] $activities */
+        array $activities
     ) {
         $this->activities = $activities;
     }
@@ -43,13 +43,17 @@ abstract class TimingPoint implements Persistable {
                 || $this instanceof HasArrival && $this->getPublicArrival() !== null
             )
             // this filter out non-stations on rail services, but keeps bus stations without CRS
-            && (
-                $location instanceof LocationWithCrs
-                || $location instanceof TiplocLocation && $location->stanox === null
-            );
+            && ($location === null || $location->tiploc !== null || $location instanceof Tiploc && $location->stanox === null);
     }
 
+    public function getAnyTime() : Time {
+        return $this->getTime(TimeType::WORKING_DEPARTURE)
+            ?? $this->getTime(TimeType::WORKING_ARRIVAL)
+            ?? $this->getTime(TimeType::PASS);
+    }
+    
+    
     /** @var Activity[] */
     #[ElementType(Activity::class)]
-    public readonly array $activities;
+    public array $activities;
 }

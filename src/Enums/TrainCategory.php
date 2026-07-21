@@ -39,6 +39,13 @@ enum TrainCategory : string {
             self::REPLACEMENT_BUS => 'Rail Replacement Bus',
             self::BUS => 'Service Bus',
             self::SHIP => 'Ship',
+            self::UNADVERTISED_ORDINARY => 'Unadvertised Local Train',
+            self::STAFF => 'Staff Train',
+            self::MIXED => 'Mixed-use Train',
+            self::INTERNATIONAL_SLEEPER => 'International Sleeper',
+            self::INTERNATIONAL => 'International Train',
+            self::MOTORAIL => 'Motorail',
+            self::UNADVERTISED_EXPRESS => 'Unadvertised Express Train',
         };
     }
 }

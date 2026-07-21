@@ -26,36 +26,63 @@ trait BsonSerializeTrait {
     }
 
     public function bsonUnserialize(array $data) : void {
-        $class = new ReflectionClass(self::class);
-        if ($class->getParentClass() !== false && method_exists(parent::class, 'bsonUnserialize')) {
+        static $cache = [];
+        $class_name = self::class;
+        $class_info = $cache[$class_name] ?? null;
+        if ($class_info === null) {
+            $class = new ReflectionClass($class_name);
+            $parent_class = $class->getParentClass();
+            $properties = [];
+            foreach ($class->getProperties() as $property) {
+                if ($property->getDeclaringClass()->getName() === $class_name && $property->isPublic() && !$property->isStatic()) {
+                    $type = $property->getType();
+                    if (!$type instanceof ReflectionNamedType) {
+                        throw new RuntimeException('This trait supports named type only.');
+                    }
+                    $element_type = null;
+                    foreach ($property->getAttributes(ElementType::class) as $attribute) {
+                        /** @var ElementType $instance */
+                        $instance = $attribute->newInstance();
+                        $element_type = $instance->type;
+                        break;
+                    }
+                    $properties[] = [
+                        'name' => $property->name,
+                        'type_name' => $type->getName(),
+                        'element_type' => $element_type,
+                    ];
+                }
+            }
+            $class_info = $cache[$class_name] = [
+                'properties' => $properties,
+                'has_parent_unserialize' => $parent_class !== false && method_exists($parent_class->getName(), 'bsonUnserialize'),
+            ];
+        }
+
+        if ($class_info['has_parent_unserialize']) {
             parent::bsonUnserialize($data);
         }
-        foreach ($class->getProperties() as $property) {
-            $declaring_class_name = $property->getDeclaringClass()->getName();
-            if ($declaring_class_name === self::class && $property->isPublic() && !$property->isStatic()) {
-                $key = $property->name;
-                $type = $property->getType();
-                $value = $data[$key];
-                if (!$type instanceof ReflectionNamedType) {
-                    throw new RuntimeException('This trait supports named type only.');
-                }
-                if ($type->getName() === 'array') {
-                    if ($value instanceof stdClass) {
-                        $value = (array)$value;
-                    }
-                    foreach ($property->getAttributes() as $attribute) {
-                        $instance = $attribute->newInstance();
-                        if ($instance instanceof ElementType) {
-                            foreach ($value as &$element) {
-                                $element = self::processValue($instance->type, $element);
-                            }
-                            unset($element);
-                        }
-                    }
-                }
-                /** @noinspection PhpVariableVariableInspection */
-                $this->$key = self::processValue($type->getName(), $value);
+        foreach ($class_info['properties'] as $prop) {
+            $key = $prop['name'];
+            if (!array_key_exists($key, $data)) {
+                continue;
             }
+            $value = $data[$key];
+            $type_name = $prop['type_name'];
+            if ($type_name === 'array') {
+                if ($value instanceof stdClass) {
+                    $value = (array)$value;
+                }
+                $element_type = $prop['element_type'];
+                if ($element_type !== null) {
+                    foreach ($value as &$element) {
+                        $element = self::processValue($element_type, $element);
+                    }
+                    unset($element);
+                }
+            }
+            /** @noinspection PhpVariableVariableInspection */
+            $this->$key = self::processValue($type_name, $value);
         }
     }
 

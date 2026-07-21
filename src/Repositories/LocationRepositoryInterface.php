@@ -4,10 +4,11 @@ declare(strict_types=1);
 namespace Miklcct\RailOpenTimetableData\Repositories;
 
 use Miklcct\RailOpenTimetableData\Models\Location;
-use Miklcct\RailOpenTimetableData\Models\LocationWithCrs;
 
 interface LocationRepositoryInterface {
-    public function getLocationByCrs(string $crs) : ?LocationWithCrs /*?(Location&LocationWithCrs)*/;
+    public function getLocation(string $text) : ?Location;
+    
+    public function getLocationByCrs(string $crs) : ?Location;
 
     public function getLocationByName(string $name) : ?Location;
 
@@ -24,7 +25,7 @@ interface LocationRepositoryInterface {
     public function insertAliases(array $aliases) : void;
 
     /**
-     * @return LocationWithCrs[]
+     * @return Location[]
      */
     public function getAllStations() : array;
 }

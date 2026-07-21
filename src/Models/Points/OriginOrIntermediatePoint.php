@@ -8,21 +8,20 @@ use Miklcct\RailOpenTimetableData\Models\Location;
 use Miklcct\RailOpenTimetableData\Models\ServiceProperty;
 use Miklcct\RailOpenTimetableData\Models\Time;
 
-readonly abstract class IntermediatePoint extends OriginOrIntermediatePoint {
+readonly abstract class OriginOrIntermediatePoint extends TimingPoint {
     use BsonSerializeTrait;
 
     public function __construct(
         Location $location,
         ?int $locationSuffix,
         ?string $platform,
-        public ?string $path,
-        ?string $line,
-        Time $engineeringAllowance,
-        Time $pathingAllowance,
-        Time $performanceAllowance,
+        public ?string $line,
+        public Time $engineeringAllowance,
+        public Time $pathingAllowance,
+        public Time $performanceAllowance,
         array $activities,
-        ServiceProperty $serviceProperty
+        public ServiceProperty $serviceProperty
     ) {
-        parent::__construct($location, $locationSuffix, $platform, $line, $engineeringAllowance, $pathingAllowance, $performanceAllowance, $activities, $serviceProperty);
+        parent::__construct($location, $locationSuffix, $platform, $activities);
     }
 }

@@ -3,11 +3,7 @@ declare(strict_types=1);
 
 namespace Miklcct\RailOpenTimetableData;
 
-use DateTimeInterface;
-use DateTimeZone;
-use Miklcct\RailOpenTimetableData\Enums\TimeType;
 use Miklcct\RailOpenTimetableData\Models\Date;
-use Miklcct\RailOpenTimetableData\Models\Time;
 use MongoDB\Database;
 use function Safe\file_get_contents;
 use function Safe\json_decode;
@@ -42,31 +38,8 @@ function get_all_tocs() : array {
  */
 function get_full_station_name(string $name) : string {
     static $mapping;
+    $name = strtoupper($name);
     $mapping ??= json_decode(file_get_contents(__DIR__ . '/../resource/long_station_names.json'), true);
     return $mapping[$name] ?? $name;
 }
 
-function get_generated(Database $database) : ?Date {
-    return $database->selectCollection('metadata')->findOne(['generated' => ['$exists' => true]])?->generated;
-}
-
-function set_generated(Database $database, ?Date $date) {
-    $database->selectCollection('metadata')->insertOne(['generated' => $date]);
-}
-
-/**
- * Get the absolute time zone (specified in UTC offset) of a date and time
- *
- * @param Date $date
- * @param Time $time
- * @return DateTimeZone
- */
-function get_absolute_time_zone(Date $date, Time $time) : DateTimeZone {
-    $date_time = $date->toDateTimeImmutable($time);
-    // The difference is to handle departure time in the "missing hour" such as the 01:05 from Waterloo
-    $utc_offset = $date_time->getOffset() + ($time->toHalfMinutes() - Time::fromDateTimeInterface($date_time)->toHalfMinutes()) * 30;
-    $negative = $utc_offset < 0;
-    $hours = intdiv(abs($utc_offset), 60 * 60);
-    $minutes = intdiv(abs($utc_offset) - $hours * 60 * 60, 60);
-    return new DateTimeZone(sprintf('%s%02d:%02d', $negative ? '-' : '+', $hours, $minutes));
-}

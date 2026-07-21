@@ -3,18 +3,35 @@ declare(strict_types=1);
 
 namespace Miklcct\RailOpenTimetableData\Repositories;
 
+use Miklcct\NationalRailTimetable\Exceptions\AmbiguousStation;
 use Miklcct\RailOpenTimetableData\Models\Location;
-use Miklcct\RailOpenTimetableData\Models\LocationWithCrs;
 use function is_string;
 
 class MemoryLocationRepository implements LocationRepositoryInterface {
-    public function getLocationByCrs(string $crs) : ?LocationWithCrs {
+    public function getLocation(string $text) : ?Location {
+        return $this->getLocationByCrs($text) ?? $this->getLocationByTiploc($text) ?? $this->getLocationByName($text);
+    }
+
+    public function getLocationByCrs(string $crs) : ?Location {
         return $this->locationsByCrs[strtoupper($crs)] ?? null;
     }
 
     public function getLocationByName(string $name) : ?Location {
-        $result = $this->locationsByName[strtoupper($name)] ?? null;
-        return is_string($result) ? $this->getLocationByName($result) : $result;
+        $name = strtoupper($name);
+        $result = $this->locationsByName[$name] ?? null;
+        if (is_string($result)) {
+            return $this->getLocationByName($result);
+        }
+        if ($result === null) {
+            $full_names = $this->fullNamesByShortName[$name] ?? [];
+            if (count($full_names) > 1) {
+                throw new AmbiguousStation($name, $full_names);
+            }
+            if (count($full_names) === 1) {
+                return $this->getLocationByName(array_first($full_names));
+            }
+        }
+        return $result;
     }
 
     public function getLocationByTiploc(string $tiploc) : ?Location {
@@ -22,11 +39,12 @@ class MemoryLocationRepository implements LocationRepositoryInterface {
     }
 
     public function insertLocations(array $locations) : void {
+        /** @var Location $station */
         foreach ($locations as $station) {
-            if ($station instanceof LocationWithCrs) {
+            if (isset($station->crsCode)) {
                 $this->updateStation(
                     $this->locationsByCrs
-                    , $station->getCrsCode()
+                    , $station->crsCode
                     , $station
                 );
             }
@@ -47,6 +65,14 @@ class MemoryLocationRepository implements LocationRepositoryInterface {
                 , $station->tiploc
                 , $station
             );
+            $full_names =& $this->fullNamesByShortName[$station->getShortName()];
+            if ($full_names === null) {
+                $full_names = [];
+            }
+            if (!in_array($station->name, $full_names)) {
+                $full_names[] = $station->name;
+            }
+            unset($full_names);
         }
     }
 
@@ -58,12 +84,14 @@ class MemoryLocationRepository implements LocationRepositoryInterface {
         return $this->locationsByCrs;
     }
 
-    /** @var array<string, LocationWithCrs> */
+    /** @var array<string, Location> */
     private array $locationsByCrs = [];
     /** @var array<string, string|Location> */
     private array $locationsByName = [];
     /** @var array<string, Location> */
     private array $locationsByTiploc = [];
+    /** @var array<string, string[]> */
+    private array $fullNamesByShortName = [];
 
     private function updateStation(
         array &$bucket

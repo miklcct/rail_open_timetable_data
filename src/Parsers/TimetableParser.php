@@ -19,20 +19,18 @@ use Miklcct\RailOpenTimetableData\Models\AssociationCancellation;
 use Miklcct\RailOpenTimetableData\Models\AssociationEntry;
 use Miklcct\RailOpenTimetableData\Models\Date;
 use Miklcct\RailOpenTimetableData\Models\Location;
-use Miklcct\RailOpenTimetableData\Models\LocationWithCrs;
 use Miklcct\RailOpenTimetableData\Models\Period;
 use Miklcct\RailOpenTimetableData\Models\Points\CallingPoint;
 use Miklcct\RailOpenTimetableData\Models\Points\DestinationPoint;
 use Miklcct\RailOpenTimetableData\Models\Points\IntermediatePoint;
 use Miklcct\RailOpenTimetableData\Models\Points\OriginPoint;
 use Miklcct\RailOpenTimetableData\Models\Points\PassingPoint;
-use Miklcct\RailOpenTimetableData\Models\Service;
-use Miklcct\RailOpenTimetableData\Models\ServiceCancellation;
-use Miklcct\RailOpenTimetableData\Models\ServiceEntry;
+use Miklcct\RailOpenTimetableData\Models\Schedule;
+use Miklcct\RailOpenTimetableData\Models\ScheduleCancellation;
+use Miklcct\RailOpenTimetableData\Models\ScheduleEntry;
 use Miklcct\RailOpenTimetableData\Models\ServiceProperty;
 use Miklcct\RailOpenTimetableData\Models\Time;
-use Miklcct\RailOpenTimetableData\Models\TiplocLocation;
-use Miklcct\RailOpenTimetableData\Models\TiplocLocationWithCrs;
+use Miklcct\RailOpenTimetableData\Models\Tiploc;
 use Miklcct\RailOpenTimetableData\Repositories\LocationRepositoryInterface;
 use Miklcct\RailOpenTimetableData\Repositories\ServiceRepositoryInterface;
 use function array_filter;
@@ -43,19 +41,24 @@ use function str_contains;
 use function str_split;
 use function str_starts_with;
 
-class TimetableParser {
+readonly class TimetableParser {
     public function __construct(
-        private readonly Helper $helper
-        , private readonly ServiceRepositoryInterface $serviceRepository
-        , private readonly LocationRepositoryInterface $locationRepository
+        private ServiceRepositoryInterface $serviceRepository
+        , private LocationRepositoryInterface $locationRepository
     ) {
     }
 
     /**
      * @param resource $file timetable file (ends with .MCA)
+     * @param ?array<string> $tocs The list of TOCs to be imported. If null, all TOCS will be imported.
      */
-    public function parseFile($file) : void {
-        $services = [];
+    public function parseFile($file, ?array $tocs = null) : void {
+        if ($tocs !== null) {
+            foreach ($tocs as &$toc) {
+                $toc = strtoupper($toc);
+            }
+        }
+        $schedules = [];
         $locations = [];
         $associations = [];
         while (($line = fgets($file)) !== false) {
@@ -71,7 +74,10 @@ class TimetableParser {
                     $associations[] = $this->parseAssociation($line);
                     break;
                 case 'BS':
-                    $services[] = $this->parseService($file, $line);
+                    $schedule = $this->parseSchedule($file, $line);
+                    if (!$schedule instanceof Schedule || $tocs === null || in_array($schedule->toc, $tocs)) {
+                        $schedules[] = $schedule;
+                    }
                     break;
                 }
                 break;
@@ -80,24 +86,18 @@ class TimetableParser {
                 break;
             }
 
-            if (count($services) >= 1000) {
-                $this->serviceRepository->insertServices($services);
-                $services = [];
+            if (count($schedules) >= 1000) {
+                $this->serviceRepository->insertSchedules($schedules);
+                $schedules = [];
             }
         }
-        $this->serviceRepository->insertServices($services);
+        $this->serviceRepository->insertSchedules($schedules);
         $this->serviceRepository->insertAssociations($associations);
         $this->locationRepository->insertLocations($locations);
     }
 
     private function parseAssociation(string $line) : AssociationEntry {
-        $columns = $this->helper->parseLine(
-            $line
-            , [
-                2, 1, 6, 6, 6, 6, 7, 2, 1, 7,
-                1, 1, 1, 1, 31, 1,
-            ]
-        );
+        $columns = parse_line($line, [2, 1, 6, 6, 6, 6, 7, 2, 1, 7, 1, 1, 1, 1, 31, 1]);
         $primaryUid = $columns[2];
         $secondaryUid = $columns[3];
         $primarySuffix = $columns[10];
@@ -105,7 +105,7 @@ class TimetableParser {
         $period = new Period(
             $this->parseYymmdd($columns[4])
             , $this->parseYymmdd($columns[5])
-            , $this->helper->parseWeekdays($columns[6])
+            , parse_weekdays($columns[6])
         );
         $location = $this->getLocation($columns[9]);
         $shortTermPlanning = ShortTermPlanning::from($columns[15]);
@@ -136,25 +136,18 @@ class TimetableParser {
     /**
      * @param resource $file
      * @param string $line
-     * @return ServiceEntry
+     * @return ScheduleEntry
      */
-    private function parseService($file, string $line) : ServiceEntry {
-        $columns = $this->helper->parseLine(
-            $line
-            , [
-                2, 1, 6, 6, 6, 7, 1, 1, 2, 4,
-                4, 1, 8, 1, 3, 4, 3, 6, 1, 1,
-                1, 1, 4, 4, 1, 1
-            ]
-        );
+    private function parseSchedule($file, string $line) : ScheduleEntry {
+        $columns = parse_line($line, [2, 1, 6, 6, 6, 7, 1, 1, 2, 4, 4, 1, 8, 1, 3, 4, 3, 6, 1, 1, 1, 1, 4, 4, 1, 1]);
         $uid = $columns[2];
         $from = $this->parseYymmdd($columns[3]);
         $to = $this->parseYymmdd($columns[4]);
-        $weekdays = $this->helper->parseWeekdays($columns[5]);
+        $weekdays = parse_weekdays($columns[5]);
         $excludeBankHoliday = BankHoliday::from($columns[6]);
         $shortTermPlanning = ShortTermPlanning::from($columns[25]);
         if ($shortTermPlanning === ShortTermPlanning::CANCEL) {
-            return new ServiceCancellation(
+            return new ScheduleCancellation(
                 $uid
                 , new Period($from, $to, $weekdays)
                 , $excludeBankHoliday
@@ -163,10 +156,7 @@ class TimetableParser {
         }
         $line = fgets($file);
         assert(is_string($line) && str_starts_with($line, 'BX'));
-        $bx_columns = $this->helper->parseLine(
-            $line
-            , [2, 4, 5, 2, 1, 8]
-        );
+        $bx_columns = parse_line($line, [2, 4, 5, 2, 1, 8]);
         $toc = $bx_columns[3];
         $serviceProperty = new ServiceProperty(
             trainCategory: TrainCategory::from($columns[8])
@@ -184,9 +174,7 @@ class TimetableParser {
             , rsid: $bx_columns[5]
         );
 
-        /** @var ServiceProperty|null $change */
         $points = [];
-        $change = null;
         $last_call = null;
         do {
             $line = fgets($file);
@@ -198,7 +186,7 @@ class TimetableParser {
                 $points[] = $point;
                 break;
             case 'LI':
-                $point = $this->parseIntermediate($line, $last_call, $change);
+                $point = $this->parseIntermediate($line, $last_call, $serviceProperty);
                 $last_call = $point instanceof PassingPoint
                     ? $point->pass
                     : (
@@ -207,18 +195,17 @@ class TimetableParser {
                             : $last_call
                     );
                 $points[] = $point;
-                $change = null;
                 break;
             case 'LT':
                 $points[] = $this->parseDestination($line, $last_call);
                 break;
             case 'CR':
-                $change = $this->parseServicePropertyChange($line);
+                $serviceProperty = $this->parseServicePropertyChange($line);
                 break;
             }
         } while (!str_starts_with($line, 'LT'));
 
-        return new Service(
+        return new Schedule(
             $uid
             , new Period($from, $to, $weekdays)
             , $excludeBankHoliday
@@ -250,22 +237,19 @@ class TimetableParser {
     }
 
     private function parseOrigin(string $line, ServiceProperty $serviceProperty) : OriginPoint {
-        $columns = $this->helper->parseLine(
-            $line
-            , [2, 8, 5, 4, 3, 3, 2, 2, 12, 2]
-        );
-        $location_columns = $this->helper->parseLine($columns[1], [7, 1]);
+        $columns = parse_line($line, [2, 8, 5, 4, 3, 3, 2, 2, 12, 2]);
+        $location_columns = parse_line($columns[1], [7, 1]);
         return new OriginPoint(
             location: $this->getLocation($location_columns[0])
-            , locationSuffix: $location_columns[1]
+            , locationSuffix: (int)$location_columns[1]
             , workingDeparture: Time::fromHhmm($columns[2])
             , publicDeparture: $this->parsePublicTime($columns[3], null)
             , platform: $columns[4]
             , line: $columns[5]
-            , allowanceHalfMinutes: $this->parseAllowance($columns[6])
-                + $this->parseAllowance($columns[7])
-                + $this->parseAllowance($columns[9])
-            , activity: $this->parseActivities($columns[8])
+            , engineeringAllowance: $this->parseAllowance($columns[6])
+            , pathingAllowance: $this->parseAllowance($columns[7])
+            , performanceAllowance: $this->parseAllowance($columns[9])
+            , activities: $this->parseActivities($columns[8])
             , serviceProperty: $serviceProperty
         );
     }
@@ -273,31 +257,28 @@ class TimetableParser {
     private function parseIntermediate(
         string $line
         , Time $last_call
-        , ?ServiceProperty $change
+        , ServiceProperty $change
     )
         : IntermediatePoint {
-        $columns = $this->helper->parseLine(
-            $line
-            , [2, 8, 5, 5, 5, 4, 4, 3, 3, 3, 12, 2, 2, 2]
-        );
-        $location_columns = $this->helper->parseLine($columns[1], [7, 1]);
+        $columns = parse_line($line, [2, 8, 5, 5, 5, 4, 4, 3, 3, 3, 12, 2, 2, 2]);
+        $location_columns = parse_line($columns[1], [7, 1]);
         return $columns[4] !== ''
             ? new PassingPoint(
                 location: $this->getLocation($location_columns[0])
-                , locationSuffix: $location_columns[1]
+                , locationSuffix: (int)$location_columns[1]
                 , pass: Time::fromHhmm($columns[4], $last_call)
                 , platform: $columns[7]
                 , line: $columns[8]
                 , path: $columns[9]
-                , activity: $this->parseActivities($columns[10])
-                , allowanceHalfMinutes: $this->parseAllowance($columns[11])
-                    + $this->parseAllowance($columns[12])
-                    + $this->parseAllowance($columns[13])
+                , activities: $this->parseActivities($columns[10])
+                , engineeringAllowance: $this->parseAllowance($columns[11])
+                , pathingAllowance: $this->parseAllowance($columns[12])
+                , performanceAllowance: $this->parseAllowance($columns[13])
                 , serviceProperty: $change
             )
             : new CallingPoint(
                 location: $this->getLocation($location_columns[0])
-                , locationSuffix: $location_columns[1]
+                , locationSuffix: (int)$location_columns[1]
                 , workingArrival: Time::fromHhmm($columns[2], $last_call)
                 , workingDeparture: Time::fromHhmm($columns[3], $last_call)
                 , publicArrival: $this->parsePublicTime($columns[5], $last_call)
@@ -307,33 +288,30 @@ class TimetableParser {
                 , line: $columns[8]
                 , path: $columns[9]
                 , activities: $this->parseActivities($columns[10])
-                , allowanceHalfMinutes: $this->parseAllowance($columns[11])
-                    + $this->parseAllowance($columns[12])
-                    + $this->parseAllowance($columns[13])
+                , engineeringAllowance: $this->parseAllowance($columns[11])
+                , pathingAllowance: $this->parseAllowance($columns[12])
+                , performanceAllowance: $this->parseAllowance($columns[13])
                 , serviceProperty: $change
             );
     }
 
     private function parseDestination(string $line, Time $last_call)
         : DestinationPoint {
-        $columns = $this->helper->parseLine(
-            $line
-            , [2, 8, 5, 4, 3, 3, 12]
-        );
-        $location_columns = $this->helper->parseLine($columns[1], [7, 1]);
+        $columns = parse_line($line, [2, 8, 5, 4, 3, 3, 12]);
+        $location_columns = parse_line($columns[1], [7, 1]);
         return new DestinationPoint(
             location: $this->getLocation($location_columns[0])
-            , locationSuffix: $location_columns[1]
+            , locationSuffix: (int)$location_columns[1]
             , workingArrival: Time::fromHhmm($columns[2], $last_call)
             , publicArrival: $this->parsePublicTime($columns[3], $last_call)
             , platform: $columns[4]
             , path: $columns[5]
-            , activity: $this->parseActivities($columns[6])
+            , activities: $this->parseActivities($columns[6])
         );
     }
 
-    private function parseAllowance(string $string) : int {
-        return ($string[1] ?? '') === 'H' ? (int)$string[0] + 1 : (int)$string;
+    private function parseAllowance(string $string) : Time {
+        return ($string[1] ?? '') === 'H' ? new Time(0, (int)$string[0], 30) : new Time(0, (int)$string);
     }
 
     /**
@@ -344,7 +322,7 @@ class TimetableParser {
             array_filter(
                 array_map(
                     Activity::tryFrom(...)
-                    , $this->helper->parseLine($string, [2, 2, 2, 2, 2, 2])
+                    , parse_line($string, [2, 2, 2, 2, 2, 2])
                 )
             )
         );
@@ -356,14 +334,7 @@ class TimetableParser {
 
     private function parseServicePropertyChange(string $line)
     : ServiceProperty {
-        $columns = $this->helper->parseLine(
-            $line
-            , [
-                2, 8, 2, 4, 4, 1, 8, 1, 3, 4,
-                3, 6, 1, 1, 1, 1, 4, 4, 4, 5,
-                8,
-            ]
-        );
+        $columns = parse_line($line, [2, 8, 2, 4, 4, 1, 8, 1, 3, 4, 3, 6, 1, 1, 1, 1, 4, 4, 4, 5, 8]);
         return new ServiceProperty(
             trainCategory: TrainCategory::from($columns[2])
             , identity: $columns[3]
@@ -396,35 +367,26 @@ class TimetableParser {
     }
 
     private function parseYymmdd(string $string) : Date {
-        $columns = $this->helper->parseLine($string, [2, 2, 2]);
+        $columns = parse_line($string, [2, 2, 2]);
         $year = (int)$columns[0] + 2000;
         $month = (int)$columns[1];
         $day = (int)$columns[2];
         return new Date($year, $month, $day);
     }
 
-    private function parseLocation(string $line) : TiplocLocation {
-        $columns = $this->helper->parseLine(
-            $line
-            , [2, 7, 2, 6, 1, 26, 5, 4, 3, 16]
-        );
+    private function parseLocation(string $line) : Tiploc {
+        $columns = parse_line($line, [2, 7, 2, 6, 1, 26, 5, 4, 3, 16]);
         $stanox = (int)$columns[6];
         if ($stanox === 0) {
             $stanox = null;
         }
         $crs = $columns[8] === '' ? null : $columns[8];
-        return $crs !== null
-            ? new TiplocLocationWithCrs(
-                tiploc: $columns[1]
-                , name: get_full_station_name($columns[5])
-                , crsCode: $crs
-                , stanox: $stanox
-            )
-            : new TiplocLocation(
-                tiploc: $columns[1]
-                , name: get_full_station_name($columns[5])
-                , stanox: $stanox
-            );
+        return new Tiploc(
+            tiploc: $columns[1]
+            , name: get_full_station_name($columns[5])
+            , crsCode: $crs
+            , stanox: $stanox
+        );
     }
 
     private function getLocation(string $location) : ?Location {
@@ -434,13 +396,13 @@ class TimetableParser {
             $result = $this->locationRepository->getLocationByCrs($crs);
             if ($result === null) {
                 fwrite(STDERR, "Unknown CRS $crs referred in Z-train\n");
-                return new TiplocLocationWithCrs($location, $crs, $crs, null);
+                return new Tiploc($location, $crs, $crs, null);
             }
             // will not be needed beyond PHP 8.2
             assert($result instanceof Location);
             return $result;
         }
         $result = $this->locationRepository->getLocationByTiploc($location);
-        return ($result instanceof LocationWithCrs ? $result->promoteToStation($this->locationRepository) : null) ?? $result;
+        return $result;
     }
 }

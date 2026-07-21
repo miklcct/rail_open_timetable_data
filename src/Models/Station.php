@@ -4,28 +4,23 @@ declare(strict_types=1);
 namespace Miklcct\RailOpenTimetableData\Models;
 
 use Miklcct\RailOpenTimetableData\Attributes\ElementType;
-use Miklcct\RailOpenTimetableData\Repositories\LocationRepositoryInterface;
 
-class Station extends Location implements LocationWithCrs {
+readonly class Station extends Location {
     use BsonSerializeTrait;
 
     public function __construct(
         string $tiploc
-        , public readonly string $crsCode
+        , ?string $crsCode
         , string $name
-        , public readonly string $minorCrsCode
-        , public readonly int $interchange
-        , public readonly int $easting
-        , public readonly int $northing
-        , public readonly int $minimumConnectionTime
+        , public string $minorCrsCode
+        , public int $interchange
+        , public int $easting
+        , public int $northing
+        , public int $minimumConnectionTime
         , array $tocConnectionTimes
     ) {
-        parent::__construct($tiploc, $name);
+        parent::__construct($tiploc, $crsCode, $name);
         $this->tocConnectionTimes = $tocConnectionTimes;
-    }
-
-    public function getCrsCode() : string {
-        return $this->crsCode;
     }
 
     public function getConnectionTime(?string $from_toc, ?string $to_toc) : int {
@@ -37,24 +32,11 @@ class Station extends Location implements LocationWithCrs {
         return $this->minimumConnectionTime;
     }
 
-    public function promoteToStation(LocationRepositoryInterface $repository) : Station {
-        $station = $repository->getLocationByCrs($this->getCrsCode());
-        assert($station instanceof Station);
-        return new Station(
-            $this->tiploc
-            , $station->crsCode
-            , $station->name
-            , $station->minorCrsCode
-            , $station->interchange
-            , $station->easting
-            , $station->northing
-            , $station->minimumConnectionTime
-            , $station->tocConnectionTimes
-        );
+    public function getCoordinates() : array {
+        return parent::getCoordinates() ?? [$this->easting, $this->northing];
     }
-
 
     /** @var TocInterchange[] */
     #[ElementType(TocInterchange::class)]
-    public readonly array $tocConnectionTimes;
+    public array $tocConnectionTimes;
 }

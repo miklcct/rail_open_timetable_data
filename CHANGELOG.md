@@ -1,3 +1,6 @@
+## [2.0.0-beta1] - 2026-08-05
+* A major rewrite, with simplified model and performance improvements
+
 ## [1.6.0] - 2025-11-11
 * Add the ability to filter services by TOC
 
@@ -60,7 +63,7 @@ clock change.
 * Fix filter not working on arrival board
 
 ## [1.1.0] - 2022-11-15
-* Add `set_generated` function to complement `get_generated`
+* Add `setGeneratedDate` function to complement `getGeneratedDate`
 
 ## [1.0.0] - 2022-11-15
 * initial release

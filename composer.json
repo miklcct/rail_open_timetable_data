@@ -4,9 +4,9 @@
     "type" : "library",
     "license" : "MIT",
     "require" : {
-        "php" : "^8.1",
+        "php" : "^8.4",
         "thecodingmachine/safe": "^2.1",
-        "mongodb/mongodb": "^1.12",
+        "mongodb/mongodb": "^2.0",
         "ext-mongodb" : "*",
         "psr/simple-cache": "^1.0",
         "symfony/cache": "^6.1"
@@ -15,12 +15,16 @@
         "roave/security-advisories" : "dev-latest",
         "phpunit/phpunit": "^9.5"
     },
+    "suggest": {
+        "ext-igbinary": "Make serialisation to/from memory faster"
+    },
     "autoload" : {
         "psr-4" : {
             "Miklcct\\RailOpenTimetableData\\" : "src/"
         },
         "files" : [
-            "src/functions.php"
+            "src/functions.php",
+            "src/Parsers/helpers.php"
         ]
     },
     "autoload-dev" : {

@@ -7,7 +7,7 @@ use Miklcct\RailOpenTimetableData\Enums\BankHoliday;
 use Miklcct\RailOpenTimetableData\Enums\ShortTermPlanning;
 use MongoDB\BSON\Persistable;
 
-class ServiceEntry implements Persistable {
+class ScheduleEntry implements Persistable {
     use BsonSerializeTrait;
     use OverlayTrait;
 
