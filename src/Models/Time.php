@@ -19,7 +19,7 @@ readonly class Time implements JsonSerializable, Persistable {
     public const int THIRTY_HOUR_CLOCK = 1;
     public const int SHOW_PLUS_DAYS = 2;
 
-    private const int DAY_JUMP_THRESHOLD = 18 * 60 * 60;
+    private const int DAY_JUMP_THRESHOLD = 12 * 60 * 60;
 
     public int $secondsFromOrigin;
     public bool $negative;

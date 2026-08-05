@@ -1,3 +1,6 @@
+## [2.0.0-beta2] - 2026-08-05
+* Fix the day jump threshold
+
 ## [2.0.0-beta1] - 2026-08-05
 * A major rewrite, with simplified model and performance improvements
 
