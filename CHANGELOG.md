@@ -1,3 +1,6 @@
+## [2.0.0-beta3] - 2026-08-06
+* Add Lumo (West Coast) into the TOC list
+
 ## [2.0.0-beta2] - 2026-08-05
 * Fix the day jump threshold
 
