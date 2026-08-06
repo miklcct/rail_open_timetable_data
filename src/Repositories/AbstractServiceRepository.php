@@ -49,9 +49,9 @@ abstract class AbstractServiceRepository implements ServiceRepositoryInterface {
         DateTimeImmutable $from,
         DateTimeImmutable $to,
         TimeType $time_type,
-        ?array $toc = null
+        ?array $tocs = null
     ) : DepartureBoard {
-        $uids = $this->getUidsAtLocation($location, $time_type);
+        $uids = $this->getUidsAtLocation($location, $time_type, $tocs);
         $from_date = Date::fromDateTimeInterface($from)->addDays(-1);
         $to_date = Date::fromDateTimeInterface($to);
         $services = $this->getServicesBetweenDates($uids, $from_date, $to_date);
@@ -78,7 +78,7 @@ abstract class AbstractServiceRepository implements ServiceRepositoryInterface {
      * Return the list of UIDs which call at the specified location
      * @return string[]
      */
-    abstract protected function getUidsAtLocation(Location $location, TimeType $time_type) : array;
+    abstract protected function getUidsAtLocation(Location $location, TimeType $time_type, ?array $tocs = null) : array;
 
     /**
      * @param array{0: string, 1: Date, 2: Service}[] $uid_on_dates

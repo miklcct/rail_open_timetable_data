@@ -87,10 +87,15 @@ class MemoryServiceRepository extends AbstractServiceRepository {
         );
     }
 
-    protected function getUidsAtLocation(Location $location, TimeType $time_type) : array {
-        return array_unique(
-            array_map(fn(Schedule $schedule) => $schedule->uid,
-                $this->schedulesAtLocations[$location->getCrsOrTiplocCode()] ?? [])
+    protected function getUidsAtLocation(Location $location, TimeType $time_type, ?array $tocs = null) : array {
+        return array_values(
+            array_unique(
+                array_filter(
+                    array_map(fn(Schedule $schedule) => $schedule,
+                    $this->schedulesAtLocations[$location->getCrsOrTiplocCode()] ?? [])
+                    , fn(Schedule $schedule) => $tocs === null || in_array($schedule->toc, $tocs)
+                )
+            )
         );
     }
 

@@ -115,7 +115,7 @@ class MongodbServiceRepository extends AbstractServiceRepository {
         return $this->findServicesInUidMatchingRsid($uids, $rsid, $date);
     }
 
-    protected function getUidsAtLocation(Location $location, TimeType $time_type) : array {
+    protected function getUidsAtLocation(Location $location, TimeType $time_type, ?array $tocs = null) : array {
         $field = match ($time_type) {
             TimeType::WORKING_ARRIVAL => 'workingArrival',
             TimeType::PUBLIC_ARRIVAL => 'publicArrival',
@@ -146,6 +146,7 @@ class MongodbServiceRepository extends AbstractServiceRepository {
                 '$and' => [
                     ['timingPoints' => ['$elemMatch' => $elemMatch]],
                     $this->getShortTermPlanningPredicate(),
+                    $tocs === null ? ['$expr' => true] : ['toc' => ['$in' => $tocs]],
                 ],
             ]
         );

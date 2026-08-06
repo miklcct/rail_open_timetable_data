@@ -1,3 +1,6 @@
+## [2.0.0-beta4] - 2026-08-06
+* Implement TOC filtering
+
 ## [2.0.0-beta3] - 2026-08-06
 * Add Lumo (West Coast) into the TOC list
 
