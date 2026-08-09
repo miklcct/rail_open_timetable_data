@@ -73,7 +73,7 @@ readonly class DepartureBoard {
         $start_index = 0;
         $end_index = count($entries);
         while ($end_index > $start_index) {
-            $mid_point = ($start_index + $end_index) / 2;
+            $mid_point = intdiv($start_index + $end_index, 2);
             if ($arrival_mode ? $here_times[$mid_point] <= $self_here : $here_times[$mid_point] >= $self_here) {
                 $start_index = $mid_point + 1;
             } else {
@@ -223,13 +223,8 @@ readonly class DepartureBoard {
                 $this->getPortions($service_call->service) as $portion
             ) {
                 $destination = ($this->timeType->isArrival() ? array_first($portion->timingPoints) : array_last($portion->timingPoints))->location;
-                if (
-                    array_filter(
-                        $destinations,
-                        static fn(Location $location) => $location->getCrsOrTiplocCode() === $destination->getCrsOrTiplocCode()
-                    ) === []
-                ) {
-                    $destinations[] = $destination;
+                if ($destination->isSuperior($destinations[$destination->getCrsOrTiplocCode()] ?? null)) {
+                    $destinations[$destination->getCrsOrTiplocCode()] = $destination;
                 }
             }
         }
@@ -274,19 +269,22 @@ readonly class DepartureBoard {
             ) {
                 // the subsequent call covers all portions of the current call
                 $all_services_called = true;
+                $location = $subsequent_call->timingPoint->location;
                 foreach ($this->calls as $other_call) {
                     $other_portions = $this->getPortions($other_call->service);
                     $called = false;
                     foreach ($this->getSubsequentOrPrecedingCalls($other_call) as $other_subsequent_call) {
-                        $timingPoint1 = $subsequent_call->timingPoint;
                         $timingPoint2 = $other_subsequent_call->timingPoint;
-                        if ($timingPoint2->location->getCrsOrTiplocCode() === $timingPoint1->location->getCrsOrTiplocCode()) {
+                        if ($timingPoint2->location->getCrsOrTiplocCode() === $location->getCrsOrTiplocCode()) {
                             if (
                                 array_filter(
                                     $other_portions
                                     , fn(Service $portion) => !array_key_exists($portion->uid, $this->getPortions($other_subsequent_call->service))
                                 ) === []
                             ) {
+                                if ($timingPoint2->location->isSuperior($location)) {
+                                    $location = $timingPoint2->location;
+                                }
                                 $called = true;
                             }
                         }
@@ -297,8 +295,7 @@ readonly class DepartureBoard {
                     }
                 }
                 if ($all_services_called) {
-                    $timingPoint = $subsequent_call->timingPoint;
-                    return $timingPoint->location;
+                    return $location;
                 }
             }
         }

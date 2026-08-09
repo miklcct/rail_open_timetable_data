@@ -1,3 +1,6 @@
+## [2.0.1] - 2026-08-10
+* When trains call at both at a main station and an inner station, list the main station in the timetable.
+
 ## [2.0.0] - 2026-08-09
 * List one of the termini as departure board of destination when trains run both
 A-B-C and A-C-B

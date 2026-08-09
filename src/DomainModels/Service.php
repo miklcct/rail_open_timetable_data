@@ -111,7 +111,7 @@ class Service {
     }
     
     public function getPortionDestination() : DestinationPoint {
-        $result = $this->timingPoints[count($this->timingPoints) - 1];
+        $result = array_last($this->timingPoints);
         assert($result instanceof DestinationPoint);
         return $result;
     }

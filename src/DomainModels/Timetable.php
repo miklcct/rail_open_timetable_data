@@ -5,6 +5,7 @@ namespace Miklcct\RailOpenTimetableData\DomainModels;
 
 use Miklcct\RailOpenTimetableData\Exceptions\UnreachableException;
 use Miklcct\RailOpenTimetableData\Models\Location;
+use Miklcct\RailOpenTimetableData\Models\Points\TimingPoint;
 use Miklcct\RailOpenTimetableData\Models\ServiceCall;
 use function array_filter;
 use function array_reverse;
@@ -108,11 +109,9 @@ class Timetable {
                                     }
                                     if ($count > $max_count) {
                                         $stations = array_map(
-                                            static fn(string $crs) => new readonly class($crs) {
-                                                public function __construct(public string $crsCode) {}
-
-                                                public function getCrsOrTiplocCode() : string {
-                                                    return $this->crsCode;
+                                            static fn(string $crs) => new readonly class($crs) extends Location{
+                                                public function __construct(string $crsCode) {
+                                                    parent::__construct("$crsCode---", $crsCode, $crsCode);
                                                 }
                                             }
                                             , $list_direction
@@ -148,17 +147,22 @@ class Timetable {
                             }
                         }
 
-                        $new_stations = array_reduce(
-                            $order
-                            , static fn(array $carry, array $item) : array => [$item[1] => $item[0]] + $carry
-                            , array_combine(
-                                array_map(
-                                    static fn(int $x) => $x * self::MULTIPLIER
-                                    , array_keys($stations)
-                                )
-                                , array_values($stations)
+                        $new_stations = array_combine(
+                            array_map(
+                                static fn(int $x) => $x * self::MULTIPLIER
+                                , array_keys($stations)
                             )
+                            , array_values($stations)
                         );
+                        /**
+                         * @var int $key
+                         * @var Location $value
+                         */
+                        foreach ($order as [$value, $key]) {
+                            if (!isset($new_stations[$key]) || $value->isSuperior($new_stations[$key])) {
+                                $new_stations[$key] = $value;
+                            }
+                        }
                         ksort($new_stations);
                         $stations = array_values($new_stations);
                         --$portions_remaining;
@@ -174,8 +178,8 @@ class Timetable {
             }
         }
         /** @var Location[] $stations */
-        $timingPoint1 = $board->calls[0]->timingPoint;
-        $stations = array_merge([$timingPoint1->location], $stations);
+        $origin = array_reduce($board->calls, fn(Location|null $carry, ServiceCall $item) => $item->timingPoint->location->isSuperior($carry) ? $item->timingPoint->location : $carry);
+        $stations = array_merge([$origin], $stations);
         foreach ($stations as &$station) {
             if (!$station instanceof Location) {
                 foreach ($stations as $find_station) {
@@ -247,6 +251,9 @@ class Timetable {
                         if (!$failed) {
                             foreach ($matrix[$j] as $column => $call) {
                                 $matrix[$i][$column] = $call;
+                            }
+                            if ($stations[$j]->isSuperior($stations[$i])) {
+                                $stations[$i] = $stations[$j];
                             }
                             unset($matrix[$j]);
                             unset($stations[$j]);
