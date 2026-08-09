@@ -10,6 +10,9 @@
 ## [2.0.0-beta1] - 2026-08-05
 * A major rewrite, with simplified model and performance improvements
 
+## [1.6.1] - 2026-03-05
+* Add Lumo (West Coast)
+
 ## [1.6.0] - 2025-11-11
 * Add the ability to filter services by TOC
 
