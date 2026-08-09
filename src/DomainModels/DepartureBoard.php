@@ -234,7 +234,8 @@ readonly class DepartureBoard {
             }
         }
 
-        // remove destinations that are intermediate stations on other services
+        // remove destinations that are intermediate stations on other services, as long as the real destination is still listed
+        // If trains go both A-B-C and A-C-B, one of them will be returned
         foreach ($this->calls as $service_call) {
             $to_be_removed = [];
             foreach ($this->getSubsequentOrPrecedingCalls($service_call) as $subsequent_call) {
@@ -243,7 +244,11 @@ readonly class DepartureBoard {
                 foreach ($this->getPortions($subsequent_call->service) as $portion) {
                     $removing = $to_be_removed[$portion->uid] ?? [];
                     $destinations = array_filter($destinations, static fn(Location $location) => !in_array($location->getCrsOrTiplocCode(), $removing));
-                    if (in_array($intermediate_location->getCrsOrTiplocCode(), array_map(fn(Location $location) => $location->getCrsOrTiplocCode(), $destinations))) {
+                    $destination_crses = array_map(fn(Location $location) => $location->getCrsOrTiplocCode(), $destinations);
+                    if (
+                        in_array($intermediate_location->getCrsOrTiplocCode(), $destination_crses)
+                        && in_array($portion->getPortionDestination()->location->getCrsOrTiplocCode(), $destination_crses)
+                    ) {
                         $to_be_removed[$portion->uid][] = $intermediate_location->getCrsOrTiplocCode();
                     }
                 }

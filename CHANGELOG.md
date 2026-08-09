@@ -1,3 +1,7 @@
+## [2.0.0] - 2026-08-09
+* List one of the termini as departure board of destination when trains run both
+A-B-C and A-C-B
+
 ## [2.0.0-beta4] - 2026-08-06
 * Implement TOC filtering
 
