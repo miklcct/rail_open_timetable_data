@@ -13,6 +13,7 @@ use Miklcct\RailOpenTimetableData\Models\Association;
 use Miklcct\RailOpenTimetableData\Models\AssociationEntry;
 use Miklcct\RailOpenTimetableData\Models\Date;
 use Miklcct\RailOpenTimetableData\Models\Location;
+use Miklcct\RailOpenTimetableData\Models\Points\OriginOrIntermediatePoint;
 use Miklcct\RailOpenTimetableData\Models\Schedule;
 use Miklcct\RailOpenTimetableData\Models\ScheduleEntry;
 use Miklcct\RailOpenTimetableData\Models\ServiceCall;
@@ -49,9 +50,17 @@ abstract class AbstractServiceRepository implements ServiceRepositoryInterface {
         DateTimeImmutable $from,
         DateTimeImmutable $to,
         TimeType $time_type,
-        ?array $tocs = null
+        ?array $tocs = null,
+        ?array $signalling_id_prefixes = null
     ) : DepartureBoard {
-        $uids = $this->getUidsAtLocation($location, $time_type, $tocs);
+        if ($signalling_id_prefixes !== null) {
+            foreach ($signalling_id_prefixes as &$prefix) {
+                $prefix = strtoupper($prefix);
+            }
+        }
+        unset($prefix);
+        
+        $uids = $this->getUidsAtLocation($location, $time_type, $tocs, $signalling_id_prefixes);
         $from_date = Date::fromDateTimeInterface($from)->addDays(-1);
         $to_date = Date::fromDateTimeInterface($to);
         $services = $this->getServicesBetweenDates($uids, $from_date, $to_date);
@@ -60,9 +69,18 @@ abstract class AbstractServiceRepository implements ServiceRepositoryInterface {
                 array_map(
                     fn (Service $service) => array_filter(
                         $service->findCallInSameUid($location)
-                        , function (ServiceCall $call) use ($to, $from, $time_type) {
+                        , function (ServiceCall $call) use ($signalling_id_prefixes, $to, $from, $time_type) {
                             $timestamp = $call->getTimestamp($time_type);
-                            return $timestamp !== null && $timestamp >= $from && $timestamp < $to;
+                            $timestamp_valid = $timestamp !== null && $timestamp >= $from && $timestamp < $to;
+                            if (!$timestamp_valid) {
+                                return false;
+                            }
+                            if ($signalling_id_prefixes === null) {
+                                return true;
+                            }
+                            $preceding_call = $call->service->timingPoints[$call->callIndex + ($time_type->isArrival() ? -1 : 0)];
+                            $service_property = $preceding_call instanceof OriginOrIntermediatePoint ? $preceding_call->serviceProperty : null;
+                            return $service_property !== null && in_array(substr($service_property->identity, 0, 2), $signalling_id_prefixes);
                         }
                     )
                     , $services
@@ -78,7 +96,7 @@ abstract class AbstractServiceRepository implements ServiceRepositoryInterface {
      * Return the list of UIDs which call at the specified location
      * @return string[]
      */
-    abstract protected function getUidsAtLocation(Location $location, TimeType $time_type, ?array $tocs = null) : array;
+    abstract protected function getUidsAtLocation(Location $location, TimeType $time_type, ?array $tocs = null, ?array $prefixes = null) : array;
 
     /**
      * @param array{0: string, 1: Date, 2: Service}[] $uid_on_dates

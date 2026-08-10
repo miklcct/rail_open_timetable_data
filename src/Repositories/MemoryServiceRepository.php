@@ -11,6 +11,7 @@ use Miklcct\RailOpenTimetableData\Models\AssociationEntry;
 use Miklcct\RailOpenTimetableData\Models\Date;
 use Miklcct\RailOpenTimetableData\Models\Location;
 use Miklcct\RailOpenTimetableData\Models\Points\OriginOrIntermediatePoint;
+use Miklcct\RailOpenTimetableData\Models\Points\TimingPoint;
 use Miklcct\RailOpenTimetableData\Models\Schedule;
 use Miklcct\RailOpenTimetableData\Models\ScheduleEntry;
 use function array_filter;
@@ -87,13 +88,14 @@ class MemoryServiceRepository extends AbstractServiceRepository {
         );
     }
 
-    protected function getUidsAtLocation(Location $location, TimeType $time_type, ?array $tocs = null) : array {
+    protected function getUidsAtLocation(Location $location, TimeType $time_type, ?array $tocs = null, ?array $prefixes = null) : array {
         return array_values(
             array_unique(
                 array_filter(
                     array_map(fn(Schedule $schedule) => $schedule,
                     $this->schedulesAtLocations[$location->getCrsOrTiplocCode()] ?? [])
                     , fn(Schedule $schedule) => $tocs === null || in_array($schedule->toc, $tocs)
+                        && $prefixes === null || array_find($schedule->timingPoints, static fn(TimingPoint $timingPoint) => $timingPoint instanceof OriginOrIntermediatePoint && in_array(substr($timingPoint->serviceProperty->identity, 0, 2), $prefixes))
                 )
             )
         );

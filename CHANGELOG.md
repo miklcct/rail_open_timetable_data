@@ -1,3 +1,6 @@
+## [2.2.0] - 2026-08-10
+* Allow filtering by signalling ID prefix for departure boards.
+
 ## [2.1.0] - 2026-08-10
 * Improve handling of working timetables.
 

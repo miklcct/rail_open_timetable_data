@@ -115,7 +115,7 @@ class MongodbServiceRepository extends AbstractServiceRepository {
         return $this->findServicesInUidMatchingRsid($uids, $rsid, $date);
     }
 
-    protected function getUidsAtLocation(Location $location, TimeType $time_type, ?array $tocs = null) : array {
+    protected function getUidsAtLocation(Location $location, TimeType $time_type, ?array $tocs = null, ?array $prefixes = null) : array {
         $field = match ($time_type) {
             TimeType::WORKING_ARRIVAL => 'workingArrival',
             TimeType::PUBLIC_ARRIVAL => 'publicArrival',
@@ -147,6 +147,9 @@ class MongodbServiceRepository extends AbstractServiceRepository {
                     ['value' => Activity::UNADVERTISED->value],
                 ],
             ];
+        }
+        if ($prefixes !== null) {
+            $elemMatch['serviceProperty.identity'] = new Regex("^" . join("|", array_map(fn (string $prefix) => preg_quote($prefix, null), $prefixes)), 'i');
         }
 
         return $this->schedulesCollection->distinct(
