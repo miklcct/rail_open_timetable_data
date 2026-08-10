@@ -1,7 +1,10 @@
-## [2.0.3] - 2026-08-11
+## [2.1.0] - 2026-08-10
+* Improve handling of working timetables.
+
+## [2.0.3] - 2026-08-10
 * Add some station ordering in the Southeastern network.
 
-## [2.0.2] - 2026-08-11
+## [2.0.2] - 2026-08-10
 * Improve station ordering.
 
 ## [2.0.1] - 2026-08-10

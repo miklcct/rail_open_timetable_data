@@ -125,11 +125,20 @@ class MongodbServiceRepository extends AbstractServiceRepository {
         };
 
         $elemMatch = [
-            '$or' => [
-                ['location.crsCode' => $location->crsCode],
-                ['location.tiploc' => $location->tiploc],
-            ],
-            $field => ['$ne' => null],
+            '$and' => [
+                [
+                    '$or' => [
+                        ...$location->crsCode === null ? [] : [['location.crsCode' => $location->crsCode]],
+                        ['location.tiploc' => $location->tiploc],
+                    ],
+                ],
+                [
+                    '$or' => [
+                        [$field => ['$ne' => null]],
+                        ...!$time_type->isPublic() ? [['pass' => ['$ne' => null]]] : [] 
+                    ]
+                ]
+            ]
         ];
         if ($time_type->isPublic()) {
             $elemMatch['activities'] = [

@@ -9,6 +9,7 @@ use Miklcct\RailOpenTimetableData\DomainModels\Service;
 use Miklcct\RailOpenTimetableData\Enums\TimeType;
 use Miklcct\RailOpenTimetableData\Models\Points\HasArrival;
 use Miklcct\RailOpenTimetableData\Models\Points\HasDeparture;
+use Miklcct\RailOpenTimetableData\Models\Points\PassingPoint;
 use Miklcct\RailOpenTimetableData\Models\Points\TimingPoint;
 
 readonly class ServiceCall {
@@ -24,7 +25,7 @@ readonly class ServiceCall {
      * @return self[]
      */
     public function getPrecedingCalls(bool $public_only) : array {
-        $filter = fn(TimingPoint $item) => $item instanceof HasDeparture && (!$public_only || $item->getPublicDeparture() !== null);
+        $filter = fn(TimingPoint $item) => $public_only ? $item instanceof HasDeparture && $item->getPublicDeparture() !== null : $item instanceof PassingPoint || $item instanceof HasDeparture;
         $calls_of_this_portion = array_map(
             fn(int $key) => new self($this->service, $key)
             , array_filter(array_keys(array_filter($this->service->timingPoints, $filter)), fn(int $item) => $item < $this->callIndex)
@@ -49,7 +50,7 @@ readonly class ServiceCall {
      * @return self[]
      */
     public function getSubsequentCalls(bool $public_only) : array {
-        $filter = fn(TimingPoint $item) => $item instanceof HasArrival && (!$public_only || $item->getPublicArrival() !== null);
+        $filter = fn(TimingPoint $item) => $public_only ? $item instanceof HasArrival && $item->getPublicArrival() !== null : $item instanceof PassingPoint || $item instanceof HasArrival;
         $calls_of_this_portion = array_map(
             fn(int $key) => new self($this->service, $key)
             , array_filter(

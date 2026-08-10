@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace Miklcct\RailOpenTimetableData\DomainModels;
 
+use InvalidArgumentException;
 use Miklcct\RailOpenTimetableData\Enums\TimeType;
 use Miklcct\RailOpenTimetableData\Models\Location;
 use Miklcct\RailOpenTimetableData\Models\ServiceCall;
@@ -19,6 +20,9 @@ readonly class DepartureBoard {
         public TimeType $timeType
         , public array $calls
     ) {
+        if ($this->timeType === TimeType::PASS) {
+            throw new InvalidArgumentException("Building a departure board of passing points is not supported.");
+        }
         $this->callMatrix = $this->buildCallMatrix();
     }
 

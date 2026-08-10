@@ -27,11 +27,13 @@ readonly abstract class TimingPoint implements Persistable {
 
     public function getTime(TimeType $time_type) : ?Time {
         return match ($time_type) {
-            TimeType::WORKING_ARRIVAL => $this instanceof HasArrival ? $this->getWorkingArrival() : null,
+            TimeType::WORKING_ARRIVAL => $this instanceof PassingPoint ? $this->pass 
+                : ($this instanceof HasArrival ? $this->getWorkingArrival() : null),
             TimeType::PUBLIC_ARRIVAL => $this instanceof HasArrival ? $this->getPublicArrival() : null,
             TimeType::PASS => $this instanceof PassingPoint ? $this->pass : null,
             TimeType::PUBLIC_DEPARTURE => $this instanceof HasDeparture ? $this->getPublicDeparture() : null,
-            TimeType::WORKING_DEPARTURE => $this instanceof HasDeparture ? $this->getWorkingDeparture() : null,
+            TimeType::WORKING_DEPARTURE => $this instanceof PassingPoint ? $this->pass 
+                : ($this instanceof HasDeparture ? $this->getWorkingDeparture() : null),
         };
     }
 
