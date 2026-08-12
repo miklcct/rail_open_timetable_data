@@ -1,3 +1,6 @@
+## [2.2.1] - 2026-08-12
+* Fix overtaken call calculation when multiple services depart at the same time.
+
 ## [2.2.0] - 2026-08-10
 * Allow filtering by signalling ID prefix for departure boards.
 

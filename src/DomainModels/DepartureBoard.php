@@ -334,7 +334,7 @@ readonly class DepartureBoard {
                 $t_there = $t_there_dt->getTimestamp();
                 
                 $bucket =& $result[$crs][$t_here];
-                if ($bucket === null || ($arrival_mode ? $t_there > $t_here : $t_there < $t_here)) {
+                if ($bucket === null || ($arrival_mode ? $t_there > $bucket : $t_there < $bucket)) {
                     $bucket = $t_there;
                 }
                 unset($bucket);
