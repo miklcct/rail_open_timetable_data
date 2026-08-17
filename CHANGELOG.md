@@ -1,3 +1,6 @@
+## [2.2.2] - 2026-08-17
+* Fix signalling ID filtering for arrival boards.
+
 ## [2.2.1] - 2026-08-12
 * Fix overtaken call calculation when multiple services depart at the same time.
 

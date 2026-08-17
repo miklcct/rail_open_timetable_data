@@ -148,15 +148,22 @@ class MongodbServiceRepository extends AbstractServiceRepository {
                 ],
             ];
         }
-        if ($prefixes !== null) {
-            $elemMatch['serviceProperty.identity'] = new Regex("^" . join("|", array_map(fn (string $prefix) => preg_quote($prefix, null), $prefixes)), 'i');
-        }
-
         return $this->schedulesCollection->distinct(
             'uid',
             [
                 '$and' => [
                     ['timingPoints' => ['$elemMatch' => $elemMatch]],
+                    ...$prefixes !== null 
+                        ? [
+                            ['timingPoints' => 
+                                [
+                                    '$elemMatch' => [
+                                        'serviceProperty.identity' => new Regex("^" . join("|", array_map(fn (string $prefix) => preg_quote($prefix, null), $prefixes)), 'i')
+                                    ]
+                                ]
+                            ]
+                        ] 
+                        : [],
                     $this->getShortTermPlanningPredicate(),
                     $tocs === null ? ['$expr' => true] : ['toc' => ['$in' => $tocs]],
                 ],
