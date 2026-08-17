@@ -1,3 +1,6 @@
+## [2.2.3] - 2026-08-17
+* Fix station name sometimes not showing on timetables.
+
 ## [2.2.2] - 2026-08-17
 * Fix signalling ID filtering for arrival boards.
 
@@ -8,7 +11,7 @@
 * Allow filtering by signalling ID prefix for departure boards.
 
 ## [2.1.0] - 2026-08-10
-* Improve handling of working timetables.
+* Improve the handling of working timetables.
 
 ## [2.0.3] - 2026-08-10
 * Add some station ordering in the Southeastern network.

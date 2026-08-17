@@ -147,22 +147,17 @@ class Timetable {
                             }
                         }
 
-                        $new_stations = array_combine(
-                            array_map(
-                                static fn(int $x) => $x * self::MULTIPLIER
-                                , array_keys($stations)
+                        $new_stations = array_reduce(
+                            $order
+                            , static fn(array $carry, array $item) : array => [$item[1] => $item[0]] + $carry
+                            , array_combine(
+                                array_map(
+                                    static fn(int $x) => $x * self::MULTIPLIER
+                                    , array_keys($stations)
+                                )
+                                , array_values($stations)
                             )
-                            , array_values($stations)
                         );
-                        /**
-                         * @var int $key
-                         * @var Location $value
-                         */
-                        foreach ($order as [$value, $key]) {
-                            if (!isset($new_stations[$key]) || $value->isSuperior($new_stations[$key])) {
-                                $new_stations[$key] = $value;
-                            }
-                        }
                         ksort($new_stations);
                         $stations = array_values($new_stations);
                         --$portions_remaining;
@@ -211,6 +206,9 @@ class Timetable {
                             }
                         }
                         $matrix[$j][$i] = $subsequent_call;
+                        if ($location->isSuperior($stations[$j])) {
+                            $stations[$j] = $location;
+                        }
                         ++$j;
                     }
                 }
