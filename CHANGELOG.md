@@ -1,3 +1,6 @@
+## [2.2.4] - 2026-08-24
+* Fix permanent departure board failing when an association is added temporarily.
+
 ## [2.2.3] - 2026-08-17
 * Fix station name sometimes not showing on timetables.
 

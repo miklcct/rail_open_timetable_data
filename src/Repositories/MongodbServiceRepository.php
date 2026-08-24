@@ -65,6 +65,7 @@ class MongodbServiceRepository extends AbstractServiceRepository {
             'period.from' => ['$lte' => $date],
             'period.to' => ['$gte' => $date],
             "period.weekdays.{$date->getWeekday()}" => true,
+            ...$this->getShortTermPlanningPredicate(),
         ])
             ->toArray();
     }
@@ -80,6 +81,7 @@ class MongodbServiceRepository extends AbstractServiceRepository {
             'period.from' => ['$lte' => $date->addDays(1)],
             'period.to' => ['$gte' => $date->addDays(-1)],
             '$or' => array_map(fn(int $weekday) => ["period.weekdays.$weekday" => true], $weekdays),
+            ...$this->getShortTermPlanningPredicate(),
         ])
             ->toArray();
     }
@@ -286,7 +288,8 @@ class MongodbServiceRepository extends AbstractServiceRepository {
                                 'primaryUid' => ['$in' => $uids_to_fetch],
                                 'period.from' => ['$lte' => $to_date],
                                 'period.to' => ['$gte' => $from_date],
-                            ]
+                            ],
+                            $this->getShortTermPlanningPredicate()
                         ],
                         $weekday_predicate === [] ? [] : [$weekday_predicate]
                     )

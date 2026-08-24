@@ -33,7 +33,7 @@ readonly class DepartureBoard {
         foreach ($arrival_mode ? array_reverse($self_departure->getPrecedingCalls($this->timeType->isPublic())) : $self_departure->getSubsequentCalls($this->timeType->isPublic()) as $arrival) {
             $location = $arrival->timingPoint->location;
             if (
-                array_key_exists($portion_uid, $arrival_mode ? $arrival->origins : $arrival->destinations)
+                array_key_exists($portion_uid, $arrival_mode ? $arrival->service->getOriginPortions() : $arrival->service->getDestinationPortions())
                 && $location->getCrsOrTiplocCode() === $destination_crs
             ) {
                 $self_arrival = $arrival;
