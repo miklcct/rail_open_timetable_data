@@ -99,6 +99,14 @@ readonly class Date implements JsonSerializable, Persistable {
             : $this->year <=> $other->year;
     }
     
+    public function isClockChangeDate() : bool {
+        return $this->isBstStartDate() || $this->isBstEndDate();
+    }
+
+    public function isBstStartDate() : bool {
+        return $this->month === 3 && $this->day >= 25 && $this->getWeekday() === 0;
+    }
+
     public function isBstEndDate() : bool {
         return $this->month === 10 && $this->day >= 25 && $this->getWeekday() === 0;
     }

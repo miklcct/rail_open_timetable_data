@@ -1,3 +1,6 @@
+## [2.4.0] - 2026-09-06
+* Add two helper functions Date::isBstStartDate() and Date::isClockChangeDate()
+
 ## [2.3.0] - 2026-09-06
 * Add helper function Date::isBstEndDate()
 

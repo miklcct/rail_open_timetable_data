@@ -148,6 +148,22 @@ class Service {
         return preg_match('/^[A-Z]{2}(\d{4}|\d{6})$/', $uid_or_rsid);
     }
 
+    /**
+     * Return either "GMT" or "BST" depending on the time zone this service runs.
+     * @return string
+     */
+    public function getTimeZoneLabel() : string {
+        $time_zone = $this->getAbsoluteTimeZone();
+        $offset = $time_zone->getOffset($this->date->toDateTimeImmutable());
+        if ($offset === 0) {
+            return "GMT";
+        }
+        if ($offset === 3600) {
+            return "BST";
+        }
+        throw new UnreachableException("The time zone of a service is neither GMT or BST, which should not happen.");
+    }
+
     public function getAbsoluteTimeZone() : DateTimeZone {
         if (!array_key_exists(0, $this->timingPoints)) {
             // this is a section after joining / dividing, try to find the origin
