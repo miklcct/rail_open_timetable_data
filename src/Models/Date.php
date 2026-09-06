@@ -98,6 +98,10 @@ readonly class Date implements JsonSerializable, Persistable {
                 : $this->month <=> $other->month
             : $this->year <=> $other->year;
     }
+    
+    public function isBstEndDate() : bool {
+        return $this->month === 10 && $this->day >= 25 && $this->getWeekday() === 0;
+    }
 
     public function bsonSerialize() : array {
         return ['date' => new UTCDateTime($this->toDateTimeImmutable(null, new DateTimeZone('UTC')))];

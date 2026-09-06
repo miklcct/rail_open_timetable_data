@@ -1,3 +1,6 @@
+## [2.3.0] - 2026-09-06
+* Add helper function Date::isBstEndDate()
+
 ## [2.2.5] - 2026-09-06
 * Fix time zone detection for departures in the repeated hour of autumn BST / GMT change.
 

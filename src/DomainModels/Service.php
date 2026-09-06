@@ -159,12 +159,7 @@ class Service {
         }
         // handle departures departing during the repeated hour of the autumn BST/GMT change
         $time = $this->timingPoints[0]->getTime(TimeType::WORKING_DEPARTURE);
-        if (
-            $this->date->month === 10 
-            && $this->date->day >= 25 
-            && $this->date->toDateTimeImmutable(null, new DateTimeZone("UTC"))->format("w") === '0'
-            && $time->hours === 1
-        ) {
+        if ($this->date->isBstEndDate() && $time->hours === 1) {
             $is_extra_overground = $this->toc === 'LO' && $this->shortTermPlanning === ShortTermPlanning::NEW
                 && $this->period->from->compare($this->period->to) === 0
                 && $this->period->from->month === 10
