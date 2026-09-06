@@ -1,3 +1,6 @@
+## [2.2.5] - 2026-09-06
+* Fix time zone detection for departures in the repeated hour of autumn BST / GMT change.
+
 ## [2.2.4] - 2026-08-24
 * Fix permanent departure board failing when an association is added temporarily.
 

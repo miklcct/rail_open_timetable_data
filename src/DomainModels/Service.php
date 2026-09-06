@@ -157,17 +157,20 @@ class Service {
             }
             return $origin_portion->getAbsoluteTimeZone();
         }
-        // handle extra departures on London Overground during autumn BST/GMT change
+        // handle departures departing during the repeated hour of the autumn BST/GMT change
         $time = $this->timingPoints[0]->getTime(TimeType::WORKING_DEPARTURE);
         if (
-            $this->toc === 'LO' && $this->shortTermPlanning === ShortTermPlanning::NEW
-            && $this->period->from->compare($this->period->to) === 0
-            && $this->period->from->month === 10
-            && $this->period->from->day >= 25
-            && $this->period->weekdays[0]
+            $this->date->month === 10 
+            && $this->date->day >= 25 
+            && $this->date->toDateTimeImmutable(null, new DateTimeZone("UTC"))->format("w") === '0'
             && $time->hours === 1
         ) {
-            return new DateTimeZone("UTC");
+            $is_extra_overground = $this->toc === 'LO' && $this->shortTermPlanning === ShortTermPlanning::NEW
+                && $this->period->from->compare($this->period->to) === 0
+                && $this->period->from->month === 10
+                && $this->period->from->day >= 25
+                && $this->period->weekdays[0];
+            return new DateTimeZone($is_extra_overground ? '+00:00' : '+01:00');
         }
 
         $date_time = $this->date->toDateTimeImmutable($time);
