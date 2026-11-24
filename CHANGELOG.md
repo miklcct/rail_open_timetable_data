@@ -1,3 +1,6 @@
+## [2.4.1] - 2026-11-24
+* Fix location alias handling
+
 ## [2.4.0] - 2026-09-06
 * Add two helper functions Date::isBstStartDate() and Date::isClockChangeDate()
 

@@ -22,7 +22,7 @@ class MongodbLocationRepository implements LocationRepositoryInterface {
         $crs = strtoupper($text);
         return $this->locationCache[$crs] ??= 
             $this->processAmbiguousResult(
-                $this->collection->find(
+                $this->findWithAliases(
                     ['$or' => [self::getCrsPredicate($text), self::getTiplocPredicate($text), self::getNamePredicate($text)]]
                 ), $text
             );
@@ -37,7 +37,7 @@ class MongodbLocationRepository implements LocationRepositoryInterface {
 
     public function getLocationByName(string $name) : ?Location {
         $name = strtoupper($name);
-        return $this->nameCache[$name] ??= $this->processAmbiguousResult($this->collection->find(self::getNamePredicate($name)), $name);
+        return $this->nameCache[$name] ??= $this->processAmbiguousResult($this->findWithAliases(self::getNamePredicate($name)), $name);
     }
 
     public function getLocationByTiploc(string $tiploc) : ?Location {
@@ -112,7 +112,7 @@ class MongodbLocationRepository implements LocationRepositoryInterface {
         return [
             '$or' => [
                 ['name' => $name],
-                ['name' => new Regex('^' . preg_quote("$name (", '/'))]
+                ['name' => new Regex('^' . preg_quote("$name (", '/') . '[^)]*\)?\z')]
             ]
         ];
     }
@@ -126,30 +126,55 @@ class MongodbLocationRepository implements LocationRepositoryInterface {
         return ['tiploc' => $tiploc];
     }
 
-    private function processAmbiguousResult(CursorInterface $cursor, string $text) : mixed {
+    private function findWithAliases(array $filter) : iterable {
+        foreach ($this->collection->find(['$and' => [$filter, ['__pclass' => ['$exists' => true]]]]) as $location) {
+            yield $location;
+        }
+
+        foreach ($this->collection->find(['$and' => [$filter, ['alias' => ['$exists' => true]]]]) as $alias) {
+            yield $alias;
+        }
+    }
+
+    private function processAmbiguousResult(iterable $cursor, string $text) : mixed {
         $exact_match = null;
         $ambiguous_matches = [];
         foreach ($cursor as $item) {
-            if ($item instanceof Location) {
-                if ($item->name === $text || $item->tiploc === $text || $item->crsCode === $text) {
-                    $bucket =& $exact_match;
-                } else {
-                    $bucket =& $ambiguous_matches[$item->name];
-                }
-                if ($item->isSuperior($bucket)) {
-                    $bucket = $item;
-                }
-                unset($bucket);
+            $content = $item instanceof Location ? $item : $item->alias;
+            if ($item->name === $text || $item instanceof Location && ($item->tiploc === $text || $item->crsCode === $text)) {
+                $bucket =& $exact_match;
+            } else {
+                $bucket =& $ambiguous_matches[$item->name];
             }
+            if ($this->isLocationSuperior($content, $bucket)) {
+                $bucket = $content;
+            }
+            unset($bucket);
         }
 
-        if ($exact_match) {
-            return $exact_match;
+        $result = $exact_match;
+        if ($result === null) {
+            if (count($ambiguous_matches) > 1) {
+                throw new AmbiguousStation(
+                    $text,
+                    array_map(fn($location) => $location instanceof Location ? $location->name : $location, $ambiguous_matches)
+                );
+            }
+            $result = array_first($ambiguous_matches);
         }
-        if (count($ambiguous_matches) > 1) {
-            throw new AmbiguousStation($text, array_map(fn(Location $location) => $location->name, $ambiguous_matches));
+        return is_string($result) 
+            ? $this->processAmbiguousResult($this->findWithAliases(['name' => $result]), $result)
+            : $result;
+    }
+    
+    private function isLocationSuperior(Location|string $content, Location|string|null $existing) : bool {
+        if (is_string($content)) {
+            return true;
         }
-        return array_first($ambiguous_matches);
+        if ($content instanceof Location) {
+            return $content->isSuperior($existing);
+        }
+        return false;
     }
 
     private readonly Collection $collection;
